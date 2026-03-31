@@ -44,4 +44,4 @@ jobs:
           releaseBody: 'GitHub Actions 自动生成的跨平台安装包。'
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.platform == 'macos-latest' && '--target universal-apple-darwin' || '' }}
+          args: ''
