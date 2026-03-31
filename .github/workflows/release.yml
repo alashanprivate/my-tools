@@ -43,7 +43,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }} # e.g. v1.0.0
-          releaseName: '开发者工具 v__VERSION__'
+          releaseName: 'My-tools ${{ github.ref_name }}'
           releaseBody: 'GitHub Actions 自动生成的跨平台安装包。'
           releaseDraft: true
           prerelease: false
