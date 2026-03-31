@@ -99,6 +99,86 @@ src-tauri/target/release/my-tools.exe  # 可执行文件
 
 **注意：** 首次构建需要 5-10 分钟编译 Rust 依赖。
 
+## 打包发布
+
+### CI/CD 自动化
+
+项目使用 GitHub Actions 自动构建和发布跨平台安装包。
+
+**构建矩阵：**
+| 平台 | 产物格式 |
+|------|---------|
+| Windows | `.exe` (NSIS) |
+| macOS | `.dmg`, `.app.tar.gz` |
+| Linux | `.AppImage`, `.deb` |
+
+**发布名称格式：** `My-tools_{version}_{arch}.{ext}`
+
+### 版本管理
+
+使用 `npm version` 命令自动管理版本号：
+
+```bash
+# 更新补丁版本 (0.1.x → 0.1.9)
+npm version patch
+
+# 更新次版本 (0.x.0 → 0.2.0)
+npm version minor
+
+# 更新主版本 (x.0.0 → 1.0.0)
+npm version major
+```
+
+### 发布流程
+
+1. **推送代码更新**
+   ```bash
+   git add .
+   git commit -m "描述"
+   git push
+   ```
+
+2. **创建版本标签**
+   ```bash
+   npm version patch      # 自动更新 package.json + 创建 git tag
+   git push --tags         # 推送标签触发 CI/CD
+   ```
+
+3. **GitHub Actions 自动完成**
+   - 提取版本号并同步到 `tauri.conf.json`
+   - 跨平台构建 (Windows/macOS/Linux)
+   - 生成安装包
+   - 创建 GitHub Release
+
+4. **检查发布结果**
+   - 访问 https://github.com/alashanprivate/my-tools/releases
+   - 验证各平台安装包名称是否正确
+
+### CI/CD 工作流
+
+详见 [.github/workflows/release.yml](.github/workflows/release.yml)
+
+**关键步骤：**
+- `checkout` - 检出代码
+- `sync version` - 从 git tag 同步版本号到 `tauri.conf.json`
+- `tauri-action` - 构建并发布
+
+### 本地打包
+
+```bash
+# 构建所有平台产物
+npm run tauri:build
+
+# 产物位置
+src-tauri/target/release/bundle/
+├── nsis/      # Windows NSIS 安装包
+├── msi/       # Windows MSI 安装包 (需要 WiX)
+├── dmg/       # macOS DMG
+├── app/       # macOS App
+├── appimage/  # Linux AppImage
+└── deb/       # Linux DEB
+```
+
 ## 项目结构
 
 ```
