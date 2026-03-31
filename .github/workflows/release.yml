@@ -185,6 +185,6 @@ jobs:
           body: 'GitHub Actions 自动生成的跨平台安装包。'
           draft: true
           prerelease: false
-          files: artifacts/**/* 2>/dev/null || echo "No files to upload"
+          files: artifacts/**
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
