@@ -1,0 +1,184 @@
+{
+  "timestamp": "2026-02-28T17:46:07+08:00",
+  "project": {
+    "name": "developer-tools",
+    "description": "基于 TDD 的现代化开发者工具应用",
+    "techStack": ["React 18", "TypeScript", "Vite", "Tailwind CSS", "Zustand", "Vitest"]
+  },
+  "modules": [
+    {
+      "path": "src/lib",
+      "name": "通用工具函数模块",
+      "entry": "src/lib/utils.ts",
+      "interfaces": ["cn"],
+      "tests": "src/lib/utils.test.ts",
+      "coverage": "100%",
+      "description": "CSS 类名合并工具"
+    },
+    {
+      "path": "src/lib/json",
+      "name": "JSON 工具模块",
+      "entry": "src/lib/json/index.ts",
+      "interfaces": ["formatJson", "validateJson", "minifyJson", "tryFixJson"],
+      "tests": "src/lib/json/json.test.ts",
+      "coverage": "89.62%",
+      "types": "src/lib/json/types.ts",
+      "description": "JSON 格式化、验证、压缩、自动修复"
+    },
+    {
+      "path": "src/lib/crypto",
+      "name": "加解密工具模块",
+      "entry": "src/lib/crypto/index.ts",
+      "interfaces": [
+        "base64Encode",
+        "base64Decode",
+        "hash",
+        "aesEncrypt",
+        "aesDecrypt",
+        "sm2Encrypt",
+        "sm2Decrypt",
+        "sm2Sign",
+        "sm2Verify",
+        "sm3Hash",
+        "sm4Encrypt",
+        "sm4Decrypt"
+      ],
+      "tests": "src/lib/crypto/crypto.test.ts",
+      "coverage": "77.95%",
+      "types": "src/lib/crypto/types.ts",
+      "description": "Base64、哈希、AES 加解密、国密算法"
+    },
+    {
+      "path": "src/lib/gm",
+      "name": "国密算法模块",
+      "entry": "src/lib/gm/index.ts",
+      "interfaces": [
+        "sm3Hash",
+        "sm4Encrypt",
+        "sm4Decrypt",
+        "sm2GenerateKeyPair",
+        "sm2Sign",
+        "sm2VerifySignature",
+        "sm2Encrypt",
+        "sm2Decrypt"
+      ],
+      "tests": ["src/lib/gm/sm2.test.ts", "src/lib/gm/sm3.test.ts", "src/lib/gm/sm4.test.ts"],
+      "coverage": "有测试",
+      "description": "国密 SM2/SM3/SM4 算法"
+    },
+    {
+      "path": "src/lib/text",
+      "name": "文本处理工具模块",
+      "entry": "src/lib/text/index.ts",
+      "interfaces": [
+        "toUpperCase",
+        "toLowerCase",
+        "capitalize",
+        "capitalizeWords",
+        "toCamelCase",
+        "toKebabCase",
+        "toSnakeCase",
+        "removeDuplicateLines",
+        "removeDuplicateChars",
+        "countWords",
+        "countLines",
+        "countChars",
+        "countCharsNoSpaces",
+        "reverseText",
+        "sortLines",
+        "trimLines"
+      ],
+      "tests": "src/lib/text/text.test.ts",
+      "coverage": "有测试",
+      "description": "文本大小写、命名转换、去重、统计"
+    },
+    {
+      "path": "src/components",
+      "name": "组件模块",
+      "entry": "无统一入口",
+      "ui": [
+        "src/components/ui/Button.tsx",
+        "src/components/ui/Card.tsx",
+        "src/components/ui/Input.tsx",
+        "src/components/ui/Textarea.tsx",
+        "src/components/ui/Label.tsx",
+        "src/components/ui/Select.tsx",
+        "src/components/ui/Tabs.tsx",
+        "src/components/ui/Toast.tsx"
+      ],
+      "layout": [
+        "src/components/layout/Layout.tsx",
+        "src/components/layout/Header.tsx",
+        "src/components/layout/Footer.tsx"
+      ],
+      "tools": [
+        "src/components/tools/JsonFormatter.tsx",
+        "src/components/tools/CryptoTools.tsx"
+      ],
+      "tests": "暂无",
+      "description": "UI 组件、布局组件、工具页面组件"
+    }
+  ],
+  "coverage": {
+    "totalFiles": "约 30 个源文件（不含 node_modules）",
+    "scannedFiles": 25,
+    "coveragePercentage": "100%（核心模块）",
+    "testCoverage": {
+      "utils.ts": "100%",
+      "json/": "89.62%",
+      "crypto/": "77.95%",
+      "overall": "76.02%"
+    },
+    "gaps": [
+      "src/components/ 的 UI 组件暂无测试",
+      "src/components/tools/ 页面组件暂无测试"
+    ]
+  },
+  "ignored": {
+    "patterns": [
+      "node_modules/**",
+      ".git/**",
+      "dist/**",
+      "build/**",
+      ".next/**",
+      "__pycache__/**",
+      "*.lock",
+      "*.log",
+      "*.bin",
+      "*.pdf",
+      "*.png",
+      "*.jpg",
+      "*.jpeg",
+      "*.gif",
+      "*.mp4",
+      "*.zip",
+      "*.tar",
+      "*.gz",
+      "coverage/**"
+    ],
+    "statistics": {
+      "node_modules": "数千个文件（已跳过）"
+    }
+  },
+  "documentation": {
+    "root": "CLAUDE.md",
+    "modules": [
+      "src/lib/CLAUDE.md",
+      "src/lib/json/CLAUDE.md",
+      "src/lib/crypto/CLAUDE.md",
+      "src/lib/gm/CLAUDE.md",
+      "src/lib/text/CLAUDE.md",
+      "src/components/CLAUDE.md",
+      "src/components/tools/CLAUDE.md"
+    ],
+    "structure": "根级简明 + 模块级详尽"
+  },
+  "nextSteps": [
+    "为 src/components/ui/ 添加组件测试（React Testing Library）",
+    "为 src/components/tools/ 添加页面组件测试",
+    "考虑添加更多工具（编码转换、时间戳、颜色转换等）",
+    "优化测试覆盖率至 80%+"
+  ],
+  "truncated": false,
+  "scanMethod": "自适应三档（模块扫描）"
+}
