@@ -47,7 +47,7 @@ jobs:
         run: npm run tauri build
 
       - name: check bundle output
-        run: dir /s /b src-tauri\target\release\bundle\*
+        run: Get-ChildItem -Path src-tauri/target/release/bundle -Recurse -File | Select-Object -ExpandProperty FullName
 
       - name: upload artifacts
         uses: actions/upload-artifact@v4
@@ -96,7 +96,7 @@ jobs:
         run: npm run tauri build
 
       - name: check bundle output
-        run: ls -la src-tauri/target/release/bundle/**
+        run: find src-tauri/target/release/bundle -type f 2>/dev/null | head -20
 
       - name: upload artifacts
         uses: actions/upload-artifact@v4
@@ -150,7 +150,7 @@ jobs:
         run: npm run tauri build
 
       - name: check bundle output
-        run: ls -la src-tauri/target/release/bundle/**
+        run: find src-tauri/target/release/bundle -type f 2>/dev/null | head -20
 
       - name: upload artifacts
         uses: actions/upload-artifact@v4
