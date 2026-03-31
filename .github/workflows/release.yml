@@ -26,14 +26,7 @@ jobs:
         run: npm install
 
       - name: sync version to tauri.conf.json
-        run: |
-          $VERSION = "${{ github.ref_name }}".Replace("refs/tags/v", "")
-          node -e "
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            config.version = '$VERSION';
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(config, null, 2) + '\n');
-          "
+        run: node -e "const fs=require('fs');let v='${{ github.ref_name }}'.replace('refs/tags/v','').replace('refs/tags/','');let c=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json','utf8'));c.version=v;fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(c,null,2)+'\n');console.log('Version set to:',v)"
 
       - name: build tauri
         run: npm run tauri build
@@ -64,14 +57,7 @@ jobs:
         run: npm install
 
       - name: sync version to tauri.conf.json
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          node -e "
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            config.version = '$VERSION';
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(config, null, 2) + '\n');
-          "
+        run: node -e "const fs=require('fs');let v='${{ github.ref_name }}'.replace('refs/tags/v','').replace('refs/tags/','');let c=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json','utf8'));c.version=v;fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(c,null,2)+'\n');console.log('Version set to:',v)"
 
       - name: build tauri
         run: npm run tauri build
@@ -109,14 +95,7 @@ jobs:
         run: npm install
 
       - name: sync version to tauri.conf.json
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          node -e "
-            const fs = require('fs');
-            const config = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            config.version = '$VERSION';
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(config, null, 2) + '\n');
-          "
+        run: node -e "const fs=require('fs');let v='${{ github.ref_name }}'.replace('refs/tags/v','').replace('refs/tags/','');let c=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json','utf8'));c.version=v;fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(c,null,2)+'\n');console.log('Version set to:',v)"
 
       - name: build tauri
         run: npm run tauri build
