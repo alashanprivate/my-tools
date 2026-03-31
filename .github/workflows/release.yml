@@ -175,9 +175,11 @@ jobs:
         continue-on-error: true
 
       - name: list artifacts
-        run: ls -la artifacts/ 2>/dev/null || echo "No artifacts downloaded"
+        run: |
+          echo "=== Listing all files ==="
+          find artifacts -type f 2>/dev/null | head -30
 
-      - name: create release
+      - name: upload to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -185,6 +187,10 @@ jobs:
           body: 'GitHub Actions 自动生成的跨平台安装包。'
           draft: true
           prerelease: false
-          files: artifacts/**
+          files: |
+            artifacts/nsis/*.exe
+            artifacts/dmg/*
+            artifacts/appimage/*
+            artifacts/deb/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
