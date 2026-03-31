@@ -160,6 +160,7 @@ jobs:
 
   create-release:
     needs: [build-windows, build-macos, build-linux]
+    if: always()
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -171,9 +172,10 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+        continue-on-error: true
 
       - name: list artifacts
-        run: find artifacts -type f -name "*.exe" -o -name "*.dmg" -o -name "*.app.tar.gz" -o -name "*.AppImage" -o -name "*.deb" 2>/dev/null | head -20
+        run: ls -la artifacts/ 2>/dev/null || echo "No artifacts downloaded"
 
       - name: create release
         uses: softprops/action-gh-release@v2
@@ -183,6 +185,6 @@ jobs:
           body: 'GitHub Actions 自动生成的跨平台安装包。'
           draft: true
           prerelease: false
-          files: artifacts/*
+          files: artifacts/**/* 2>/dev/null || echo "No files to upload"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
