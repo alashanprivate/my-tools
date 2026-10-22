@@ -7,9 +7,9 @@ import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import { RegionSelector } from '@/components/ui/RegionSelector'
 import { Copy, Check, RefreshCw } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 import { generateMultipleIdCards, validateIdCard } from '@/lib/idCard'
-import type { IdCardInfo } from '@/lib/idCard'
+import type { IdCardInfo, Gender } from '@/lib/idCard'
 
 export function IdCardTool() {
   const [tab, setTab] = useState<'generate' | 'validate'>('generate')
@@ -134,7 +134,7 @@ export function IdCardTool() {
                 <Label>性别</Label>
                 <Select
                   value={generateGender}
-                  onChange={(e) => setGenerateGender(e.target.value as any)}
+                  onChange={(e) => setGenerateGender(e.target.value as Gender)}
                   options={[
                     { value: 'random', label: '随机' },
                     { value: 'male', label: '男性' },

@@ -116,6 +116,11 @@ export function testRegex(
         groups: match.slice(1),
       })
 
+      // 非全局正则的 exec 永远返回第一个匹配，必须手动终止，否则死循环
+      if (!regex.global) {
+        break
+      }
+
       // 防止无限循环（如匹配空字符串）
       if (match.index === regex.lastIndex) {
         regex.lastIndex++
@@ -225,7 +230,7 @@ String pattern = "${pattern}";
 String text = "your text here";
 
 // 创建 Pattern 对象
-Pattern regex = Pattern.compile(pattern${flags.length > 0 ? ', Pattern.' + flags.toUpperCase().split('').map(f => {
+Pattern regex = Pattern.compile(pattern${flags.length > 0 ? ', Pattern.' + flags.split('').map(f => {
   const flagMap: Record<string, string> = {
     'i': 'CASE_INSENSITIVE',
     'm': 'MULTILINE',

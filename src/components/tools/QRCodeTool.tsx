@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
-import { generateQRCode, downloadQRCode, ERROR_CORRECTION_LEVELS, PRESET_SIZES } from '@/lib/qrcode'
+import { generateQRCode, downloadQRCode, ERROR_CORRECTION_LEVELS, PRESET_SIZES, type ErrorCorrectionLevel } from '@/lib/qrcode'
 import { Download, RefreshCw, Image as ImageIcon } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 
 type InputType = 'text' | 'url' | 'phone' | 'email'
 
@@ -215,7 +215,7 @@ export function QRCodeTool() {
                   <Label>容错级别</Label>
                   <Select
                     value={errorLevel}
-                    onChange={(e) => setErrorLevel(e.target.value as any)}
+                    onChange={(e) => setErrorLevel(e.target.value as ErrorCorrectionLevel)}
                     options={ERROR_CORRECTION_LEVELS.map(level => ({
                       value: level.value,
                       label: level.label,

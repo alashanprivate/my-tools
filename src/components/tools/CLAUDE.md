@@ -279,7 +279,7 @@ export function ToolPage() {
 ### 使用 Toast 通知
 
 ```typescript
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 
 const { showToast } = useToast()
 
@@ -336,7 +336,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 import { toolFunction } from '@/lib/newTool'
 
 export function NewTool() {

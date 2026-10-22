@@ -1,15 +1,19 @@
 import { Outlet } from 'react-router-dom'
-import { Header } from './Header'
-import { Footer } from './Footer'
+import { AskAiDialog } from '@/components/ai/AskAiDialog'
+import { Sidebar } from './Sidebar'
+import { TopBar } from './TopBar'
 
 export function Layout() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar />
+        <main className="min-w-0 flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+      <AskAiDialog />
     </div>
   )
 }

@@ -11,7 +11,10 @@ describe('cn', () => {
   })
 
   it('should handle conditional classes', () => {
-    expect(cn('base-class', true && 'active', false && 'inactive')).toBe(
+    // 显式 boolean 标注模拟运行时条件值
+    const isActive: boolean = true
+    const isInactive: boolean = false
+    expect(cn('base-class', isActive && 'active', isInactive && 'inactive')).toBe(
       'base-class active'
     )
   })

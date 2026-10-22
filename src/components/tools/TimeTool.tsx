@@ -14,7 +14,7 @@ import {
   TIME_ZONES,
 } from '@/lib/time'
 import { Copy, Check, Clock, Calendar, Calculator, Globe } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 
 type Tab = 'timestamp' | 'timezone' | 'diff' | 'calculate'
 
@@ -488,7 +488,7 @@ export function TimeTool() {
                 <Label>单位</Label>
                 <Select
                   value={calcUnit}
-                  onChange={(e) => setCalcUnit(e.target.value as any)}
+                  onChange={(e) => setCalcUnit(e.target.value as 'day' | 'week' | 'month' | 'year')}
                   options={[
                     { value: 'day', label: '天' },
                     { value: 'week', label: '周' },

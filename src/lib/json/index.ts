@@ -83,12 +83,9 @@ export function validateJson(input: string): JsonValidateResult {
  */
 export function minifyJson(
   input: string,
-  options: JsonMinifyOptions = {}
+  // removeWhitespace 未使用：JSON.stringify 默认移除所有空白；保留下划线参数以维持 API 兼容
+  _options: JsonMinifyOptions = {}
 ): JsonConversionResult {
-  // options 中的 removeWhitespace 未使用，因为 JSON.stringify 默认移除所有空白
-  // 保留参数以保持 API 兼容性
-  options
-
   // 处理空输入
   if (!input || input.trim().length === 0) {
     return {

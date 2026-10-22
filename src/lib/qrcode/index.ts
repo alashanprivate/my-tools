@@ -85,4 +85,4 @@ export const PRESET_SIZES = [
 ] as const
 
 // 导出类型
-export type { QRCodeOptions, QRCodeResult, QRCodeColor } from './types'
+export type { QRCodeOptions, QRCodeResult, QRCodeColor, ErrorCorrectionLevel } from './types'

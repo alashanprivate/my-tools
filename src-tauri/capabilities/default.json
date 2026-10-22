@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "主窗口默认能力：允许通过 shell 插件用系统浏览器打开外部链接，以及创建/聚焦 AI 对话应用内窗口",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    "core:webview:allow-create-webview-window",
+    "core:window:allow-set-focus"
+  ]
+}

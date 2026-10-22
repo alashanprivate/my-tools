@@ -8,23 +8,27 @@
 
 | 工具 | 路由 | 说明 |
 |------|------|------|
-| **JSON 格式化** | `/json` | 格式化、压缩、验证、自动修复 |
+| **JSON 格式化** | `/json` | 格式化、压缩、验证、自动修复、AI 生成 Java 实体/Mock 数据 |
 | **加解密** | `/crypto` | Base64、哈希、AES、SM2/SM3/SM4 |
-| **Cron 表达式** | `/cron` | 生成、解释、验证、测试 |
+| **Cron 表达式** | `/cron` | 生成、解释、验证、测试、AI 自然语言生成 |
 | **JWT 工具** | `/jwt` | 生成、解析、验证 JWT Token |
 | **正则表达式** | `/regex` | 测试、模板、代码生成 |
 | **时间戳** | `/time` | 转换、时区、日期计算 |
 | **二维码** | `/qrcode` | 生成、解析二维码 |
 | **身份证** | `/idcard` | 生成、验证身份证信息 |
+| **AI 对话** | `/ai-chat` | 常用 AI 聊天入口，桌面端应用内窗口打开 |
+| **异常分析** | `/exception` | Java 堆栈本地解析 + AI 根因分析 |
+| **SQL 助手** | `/sql` | DDL + 需求生成 SQL，或分析优化慢 SQL |
+| **AI 设置** | `/ai` | 多档案配置 OpenAI 兼容接口（公司模型/本地 Ollama 快速切换） |
 
 ## 技术栈
 
 **前端框架：**
-- React 18 + TypeScript
-- Vite 5.x
-- Tailwind CSS + 自定义组件
-- React Router DOM v6
-- Vitest + React Testing Library
+- React 19 + TypeScript
+- Vite 8.x
+- Tailwind CSS 4 + 自定义组件
+- React Router DOM v7
+- Vitest 5 + React Testing Library 16
 
 **桌面应用：**
 - Tauri 2.x (Rust 后端)
@@ -198,8 +202,9 @@ src/
 │   │   └── RegionSelector.tsx
 │   ├── layout/          # 布局组件
 │   │   ├── Layout.tsx
-│   │   ├── Header.tsx
-│   │   └── Footer.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── TopBar.tsx
+│   │   └── nav.ts
 │   └── tools/           # 工具页面
 │       ├── JsonFormatter.tsx
 │       ├── CryptoTools.tsx
@@ -207,8 +212,11 @@ src/
 │       ├── JwtTool.tsx
 │       ├── RegexTool.tsx
 │       ├── TimeTool.tsx
-│       ├── QRCodeTool.tsx
-│       └── IdCardTool.tsx
+    │       ├── QRCodeTool.tsx
+    │       ├── IdCardTool.tsx
+    │       ├── ExceptionAnalyzer.tsx
+    │       ├── SqlAssistant.tsx
+    │       └── AiSettings.tsx
 └── lib/                 # 工具函数库
     ├── utils.ts         # 通用工具
     ├── json/            # JSON 处理
@@ -220,7 +228,9 @@ src/
     ├── regex/           # 正则表达式
     ├── time/            # 时间戳
     ├── qrcode/          # 二维码
-    └── idCard/          # 身份证
+    ├── idCard/          # 身份证
+    ├── exception/       # Java 异常堆栈解析
+    └── ai/              # AI 能力（OpenAI 兼容流式客户端、设置存储）
 ```
 
 ```
@@ -242,6 +252,8 @@ src-tauri/               # Tauri 桌面应用
 - 验证（错误行定位）
 - 自动修复（单引号、尾随逗号、注释）
 - 键排序
+- AI 生成 Java 实体类（可选包名、Lombok @Data，嵌套对象与数组自动拆类）
+- AI 生成 Mock 数据（以输入 JSON 为结构样例批量生成模拟数据，可加数量/取值约束）
 
 ### 加解密 (/crypto)
 
@@ -259,6 +271,7 @@ src-tauri/               # Tauri 桌面应用
 - 解释为中文
 - 计算未来执行时间
 - 生成器（预设模式）
+- AI 生成（自然语言描述 → 表达式，支持 6 段 Quartz/Spring 与 5 段 crontab，生成后本地校验把关）
 
 ### JWT 工具 (/jwt)
 
@@ -288,6 +301,29 @@ src-tauri/               # Tauri 桌面应用
 
 - 生成测试身份证
 - 验证身份证信息
+
+### 异常分析 (/exception)
+
+- **本地解析（无需 AI 配置）**：识别异常链（含多层 `Caused by`）、根因异常、`... N more` 省略帧统计、高频包统计
+- **业务帧定位**：配置业务包前缀（如 `com.example`）后，高亮根因链中最接近抛出点的业务代码帧
+- **AI 分析（流式）**：按「根因判断 → 常见触发场景 → 排查步骤 → 修复建议」结构输出，支持补充上下文（如"SIT 环境偶现"）
+- 支持中断与一键复制
+
+### SQL 助手 (/sql)
+
+- **DDL 生成 SQL**：粘贴建表语句 + 一句话需求 → 生成 SQL（含逻辑说明与索引/性能提示）
+- **SQL 优化**：粘贴待分析 SQL（可含 EXPLAIN 输出）→ 问题分析、优化后的 SQL、优化点说明
+- 支持方言选择：MySQL / PostgreSQL / Oracle；流式输出、可中断、一键复制
+
+### AI 设置 (/ai)
+
+- 多配置档案：公司模型、本地 Ollama 等多套配置一键切换，支持新建/删除/重命名
+- 配置任意 OpenAI 兼容接口（Base URL + API Key + 模型名）
+- 支持本地模型（Ollama `http://localhost:11434/v1`、LM Studio）和云端服务（OpenAI、DeepSeek、通义等）
+- 测试连接并拉取模型列表
+- 配置仅存本机 localStorage；流式输出，支持中断；旧版单配置自动迁移
+- 全局「问 AI」：顶栏 ✨ 按钮或 Ctrl/Cmd+Shift+K 唤起，可自动携带当前工具页的上下文（正则、JSON、Cron、异常分析、SQL 五个页面已接入）
+- 已接入工具：正则「AI 生成正则」、JSON「AI 生成 Java 实体 / Mock 数据」、Cron「AI 生成」、异常分析、SQL 助手
 
 ## 设计原则
 

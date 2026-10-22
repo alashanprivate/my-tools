@@ -33,7 +33,7 @@ function generateDescription(parsed: ReturnType<typeof parse>): string {
   const dayPart = getPart(parts, 'day')
   const weekdayPart = getPart(parts, 'weekday')
 
-  let description = ''
+  let description: string
 
   // 处理每分钟执行
   if (minutePart?.type === 'all' && hourPart?.type === 'all') {

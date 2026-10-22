@@ -9,12 +9,11 @@
 ## 架构总览
 
 **技术栈：**
-- **前端框架：** React 18 + TypeScript
-- **构建工具：** Vite 5.x
-- **UI 组件：** Tailwind CSS + 自定义组件（参考 shadcn/ui 设计）
-- **状态管理：** Zustand
-- **路由：** React Router DOM v6
-- **测试框架：** Vitest + React Testing Library
+- **前端框架：** React 19 + TypeScript
+- **构建工具：** Vite 8.x
+- **UI 组件：** Tailwind CSS 4（@tailwindcss/vite 插件）+ 自定义组件（参考 shadcn/ui 设计）
+- **路由：** React Router DOM v7
+- **测试框架：** Vitest 5 + React Testing Library 16
 - **加密库：** crypto-js、js-base64、sm-crypto
 
 **开发模式：**
@@ -55,7 +54,15 @@ graph TD
 | [src/lib/json](./src/lib/json/CLAUDE.md) | JSON 格式化、验证、压缩、自动修复 | 89.62% | ✅ 完成 |
 | [src/lib/crypto](./src/lib/crypto/CLAUDE.md) | Base64、哈希、AES 加解密 | 77.95% | ✅ 完成 |
 | [src/lib/gm](./src/lib/gm/CLAUDE.md) | 国密 SM2/SM3/SM4 算法 | 有测试 | ✅ 完成 |
-| [src/lib/text](./src/lib/text/CLAUDE.md) | 文本大小写、去重、统计 | 有测试 | ✅ 完成 |
+| [src/lib/text](./src/lib/text/CLAUDE.md) | 文本大小写、去重、统计 | 42 个测试 | ✅ 完成 |
+| [src/lib/cron](./src/lib/cron/) | Cron 解析、验证、解释、调度 | 40 个测试 | ✅ 完成 |
+| [src/lib/jwt](./src/lib/jwt/) | JWT 生成、解析、验证 | 20 个测试 | ✅ 完成 |
+| [src/lib/qrcode](./src/lib/qrcode/) | 二维码生成、下载 | 有测试 | ✅ 完成 |
+| [src/lib/regex](./src/lib/regex/) | 正则测试、模板、代码生成 | 有测试 | ✅ 完成 |
+| [src/lib/time](./src/lib/time/) | 时间戳转换、日期计算 | 有测试 | ✅ 完成 |
+| [src/lib/idCard](./src/lib/idCard/) | 身份证生成、验证 | 有测试 | ✅ 完成 |
+| [src/lib/ai](./src/lib/ai/) | AI 流式客户端（OpenAI 兼容）、SSE 解析、设置存储 | 有测试 | ✅ 完成 |
+| [src/lib/exception](./src/lib/exception/) | Java 异常堆栈解析（异常链、根因、包统计、业务帧定位） | 14 个测试 | ✅ 完成 |
 | [src/lib/utils.ts](./src/lib/CLAUDE.md) | 通用工具函数 | 100% | ✅ 完成 |
 | [src/components](./src/components/CLAUDE.md) | UI 组件和页面组件 | - | ✅ 完成 |
 
@@ -126,14 +133,25 @@ src/
     └── setup.ts                # 测试全局配置
 ```
 
-### 当前测试覆盖率
+### 当前测试覆盖情况
 
-| 模块 | 语句覆盖 | 分支覆盖 | 函数覆盖 | 行覆盖 |
-|------|---------|---------|---------|--------|
-| utils.ts | 100% | 100% | 100% | 100% |
-| json/ | 89.62% | 80% | 85.71% | 89.62% |
-| crypto/ | 77.95% | 63.04% | 100% | 77.95% |
-| **总体** | **76.02%** | - | - | - |
+> 注：`npm run test:coverage` 当前配置会统计项目内全部文件，结果仅供参考；以下为各模块测试数量（2026-10-22 统计，共 27 个测试文件 / 324 个用例）。
+
+| 模块 | 测试数量 |
+|------|---------|
+| text/ | 42 |
+| cron/ | 40 |
+| gm/ | 27 |
+| crypto/ | 25 |
+| jwt/ | 20 |
+| json/ | 18 |
+| qrcode/ | 9 |
+| time/ | 22 |
+| regex/ | 19 |
+| idCard/ | 15 |
+| utils.ts | 5 |
+| ai/ | 39 |
+| components/ui | 14 |
 
 ### TDD 开发流程
 
@@ -272,7 +290,18 @@ my-tools/
 |------|------|------|
 | `/` | `Home` | 工具导航首页 |
 | `/json` | `JsonFormatter` | JSON 格式化工具 |
-| `/crypto` | `CryptoTools` | 加解密工具 |
+| `/crypto` | `CryptoTools` | 加解密工具（Base64/哈希/AES/国密） |
+| `/cron` | `CronTools` | Cron 表达式工具 |
+| `/jwt` | `JwtTool` | JWT 工具 |
+| `/idcard` | `IdCardTool` | 身份证工具 |
+| `/time` | `TimeTool` | 时间戳工具 |
+| `/qrcode` | `QRCodeTool` | 二维码工具 |
+| `/regex` | `RegexTool` | 正则表达式工具（含 AI 生成） |
+| `/exception` | `ExceptionAnalyzer` | 异常分析（堆栈本地解析 + AI 根因分析） |
+| `/ai` | `AiSettings` | AI 设置（多档案 OpenAI 兼容接口配置） |
+| `/ai-chat` | `AiChatNav` | AI 对话入口（桌面端 WebviewWindow 应用内窗口打开） |
+
+> 所有工具页面组件均通过 `React.lazy` 按路由懒加载（见 `src/App.tsx`）。
 
 ## 常见问题
 
@@ -317,6 +346,33 @@ npm run test:coverage
 - SM4 密钥：32 字符十六进制字符串（128 位）
 
 ## 变更记录
+
+### 2026-10-22
+- 新增一级入口「AI 对话」（/ai-chat，与网站导航并列）：14 个常用 AI 聊天入口（DeepSeek/Kimi/豆包/通义/文心/元宝/智谱/秘塔/ChatGPT/Claude/Gemini/Grok/Perplexity/Poe）；桌面端点击用 @tauri-apps/api 的 WebviewWindow 在应用内独立窗口打开（重复点击聚焦已有窗口），浏览器环境回退新标签页；capability 新增 core:webview:allow-create-webview-window 与 core:window:allow-set-focus（需重启 tauri dev 生效）
+- 新增全局「问 AI」对话框（顶栏 ✨ 按钮或 Ctrl/Cmd+Shift+K）：src/lib/ai/toolContext.ts 上下文注册表（useToolAiContext hook，每次渲染重注册、卸载清除，超 4000 字符截断），正则/JSON/Cron/异常分析/SQL 五个工具页已注册上下文，提问时可勾选是否附带；buildAskMessages 构造带上下文的消息
+- JsonFormatter 新增「AI 生成 Mock 数据」：以输入 JSON 为结构样例批量生成模拟数据（可加数量/取值约束），结果自动剥代码块并格式化；buildMockDataMessages 提示词约束字段名/结构一致、数据逼真、ID 唯一
+- 新增 SQL 助手（/sql，导航「AI 助手」分组）：两种模式——DDL+自然语言需求生成 SQL、SQL（可含 EXPLAIN）优化分析；方言可选 MySQL/PostgreSQL/Oracle；buildSqlMessages 提示词按「SQL→逻辑说明→索引提示」/「问题分析→优化 SQL→优化点」结构约束输出
+- CronTools 新增「AI 生成」：自然语言描述 → cron 表达式（可选 6 段 Quartz/Spring 或 5 段 crontab），流式生成后自动填入并用本地 validate 把关；lib/ai 新增 buildCronMessages 与 extractCronFromResponse（剥代码块/引号/前缀）
+- 新增异常分析工具（/exception，导航「AI 助手」分组）：本地解析 src/lib/exception/（逐行解析异常链/Caused by/省略帧/包统计，业务包前缀定位最深业务帧，14 个测试）；AI 分析按「根因判断→触发场景→排查步骤→修复建议」结构流式输出（buildExceptionMessages），支持补充上下文与中断
+- AI 设置升级为多配置档案（store 存 my-tools.ai.profiles）：新建/删除/重命名/切换档案，旧版单配置自动迁移为「默认」档案；loadAiSettings/saveAiSettings 语义改为指向激活档案，工具页无需改动
+- JsonFormatter 新增「AI 生成 Java 实体」：JSON → Java 类（可选包名、Lombok @Data），流式输出 + 代码块清洗 + 一键复制；lib/ai 新增 buildJavaEntityMessages 与通用 extractCodeBlock（extractRegexFromResponse 复用）
+- 新增 AI 能力基础模块 src/lib/ai/：OpenAI 兼容流式客户端（SSE 增量解析、可注入 fetch 便于测试）、设置存取（localStorage，默认 Ollama 端点 http://localhost:11434/v1）、AiError 错误分类（config/network/http/parse/aborted）
+- 新增 AI 设置页（/ai，导航分组「AI 助手」）：BYOK 模式配置接口地址/API Key/模型名，测试连接并拉取模型列表，配置仅存本机
+- RegexTool 接入「AI 生成正则」：自然语言描述流式生成正则并自动填入，支持中断；提示词与结果提取在 lib/ai/prompts.ts（含测试）
+- tauri.conf.json 的 connect-src CSP 放宽为允许 http://localhost:*、http://127.0.0.1:* 与 https:，否则桌面版无法调用本地/云端 AI 接口
+- 界面布局改为左侧菜单栏 + 右侧操作区：新增 Sidebar（可折叠侧边栏，导航为「开发工具 → 分组 → 工具」三级可折叠结构，当前项高亮，折叠状态持久化到 localStorage，路由切换时自动展开活动项所在分组，隐藏滚动条但保留滚动），删除顶部 Header/Footer
+- 右侧操作区顶部新增 TopBar：Ctrl/Cmd+K 聚焦的工具搜索（下拉结果支持 ↑↓ 选择、回车打开）、已打开工具的标签页（自动记录、可关闭、持久化 localStorage、关闭当前页时激活相邻标签、+ 按钮回首页）
+- 工具导航配置抽取为 layout/nav.ts 单一数据源，侧边栏与首页卡片共用
+- 修复 JsonFormatter 全屏 ESC 键监听写在 return 之后导致功能失效的 bug
+- 修复 RegexTool 非全局正则 exec 死循环、Java 代码生成标志映射错位的 bug
+- 清理全部 ESLint 错误（any、@ts-ignore、prefer-const、Toast 导出拆分）
+- 移除未使用依赖 zustand、date-fns；@types/qrcode 移至 devDependencies
+- 清理垃圾文件（regionData.ts.backup、gm.example.ts、空目录 lib/m）
+- 工具页面改为 React.lazy 路由级代码分割，主包 461KB → 205KB
+- 新增 CI workflow（lint + test + build）；release workflow 改用 npm ci、Rust 缓存、版本同步抽为复合 action
+- tauri.conf.json 设置基础 CSP，版本号与 package.json 同步
+- 补齐 qrcode/regex/time/idCard 四个模块的单元测试（65 个新用例）
+- 更新模块索引与路由表
 
 ### 2026-02-28 17:46:07
 - 初始化 AI 上下文文档

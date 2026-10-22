@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -6,8 +6,16 @@ import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select } from '@/components/ui/Select'
 import { testRegex, generateCode, REGEX_TEMPLATES, FLAG_DESCRIPTIONS } from '@/lib/regex'
-import { FileCode, Check, X, Copy, BookOpen } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import {
+  AiError,
+  buildRegexMessages,
+  extractRegexFromResponse,
+  loadAiSettings,
+  streamChatCompletion,
+  useToolAiContext,
+} from '@/lib/ai'
+import { FileCode, Check, X, Copy, BookOpen, Sparkles, Square } from 'lucide-react'
+import { useToast } from '@/components/ui/useToast'
 
 type Tab = 'test' | 'templates' | 'code'
 
@@ -22,7 +30,13 @@ export function RegexTool() {
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [codeLanguage, setCodeLanguage] = useState<CodeLanguage>('javascript')
   const [copied, setCopied] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiStreaming, setAiStreaming] = useState(false)
+  const [aiOutput, setAiOutput] = useState('')
+  const aiAbortRef = useRef<AbortController | null>(null)
   const { showToast } = useToast()
+
+  useToolAiContext('正则表达式', () => `表达式: /${pattern}/${flags}\n测试文本: ${testText}`)
 
   // 实时测试正则表达式
   useEffect(() => {
@@ -51,6 +65,47 @@ export function RegexTool() {
       setFlags(flags.replace(flag, ''))
     } else {
       setFlags(flags + flag)
+    }
+  }
+
+  // AI 生成正则：流式生成并自动填入表达式输入框
+  const handleAiGenerate = async () => {
+    const description = aiPrompt.trim()
+    if (!description || aiStreaming) return
+    const aiSettings = loadAiSettings()
+    if (!aiSettings.model.trim()) {
+      showToast('请先在「AI 设置」中配置接口和模型', 'error')
+      return
+    }
+    const controller = new AbortController()
+    aiAbortRef.current = controller
+    setAiStreaming(true)
+    setAiOutput('')
+    try {
+      let full = ''
+      await streamChatCompletion(aiSettings, buildRegexMessages(description), {
+        signal: controller.signal,
+        onDelta: (delta) => {
+          full += delta
+          setAiOutput(full)
+        },
+      })
+      const regex = extractRegexFromResponse(full)
+      if (!regex) {
+        showToast('AI 未返回有效的正则表达式', 'error')
+      } else {
+        setPattern(regex)
+        showToast('已生成正则表达式', 'success')
+      }
+    } catch (error) {
+      if (error instanceof AiError && error.kind === 'aborted') {
+        showToast('已取消生成', 'info')
+      } else {
+        showToast(error instanceof Error ? error.message : String(error), 'error')
+      }
+    } finally {
+      setAiStreaming(false)
+      aiAbortRef.current = null
     }
   }
 
@@ -199,6 +254,51 @@ export function RegexTool() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* AI 生成正则 */}
+              <div className="rounded-md border border-dashed p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Sparkles className="h-4 w-4 text-fuchsia-500" />
+                  AI 生成正则
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && !aiStreaming) {
+                        handleAiGenerate()
+                      }
+                    }}
+                    placeholder="用自然语言描述，例如：匹配 11 位手机号，支持 +86 前缀"
+                    disabled={aiStreaming}
+                  />
+                  {aiStreaming ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => aiAbortRef.current?.abort()}
+                      className="shrink-0 whitespace-nowrap"
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      取消
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleAiGenerate}
+                      disabled={!aiPrompt.trim()}
+                      className="shrink-0 whitespace-nowrap"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      生成
+                    </Button>
+                  )}
+                </div>
+                {aiStreaming && (
+                  <div className="font-mono text-xs text-muted-foreground break-all min-h-[1rem]">
+                    {aiOutput || '生成中…'}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -410,6 +510,7 @@ export function RegexTool() {
           <p>• <strong>标志位</strong>: 支持多种正则表达式标志位切换</p>
           <p>• <strong>常用模板</strong>: 提供12种常用正则表达式模板</p>
           <p>• <strong>代码生成</strong>: 生成5种编程语言的正则表达式使用代码</p>
+          <p>• <strong>AI 生成</strong>: 用自然语言描述需求自动生成正则表达式（需先在「AI 设置」中配置服务）</p>
           <div className="mt-4 p-4 bg-muted rounded-md">
             <div className="font-medium mb-2">标志位说明</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

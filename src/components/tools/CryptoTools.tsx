@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Select } from '@/components/ui/Select'
-import { base64Encode, base64Decode, hash, aesEncrypt, aesDecrypt } from '@/lib/crypto'
+import { base64Encode, base64Decode, hash, aesEncrypt, aesDecrypt, type HashAlgorithm } from '@/lib/crypto'
 import { sm3Hash, sm4Encrypt, sm4Decrypt, sm2GenerateKeyPair, sm2Sign, sm2VerifySignature, sm2Encrypt as sm2Enc, sm2Decrypt as sm2Dec, type SM2KeyPair } from '@/lib/gm'
 import { Copy, Check } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 
 export function CryptoTools() {
   const [searchParams] = useSearchParams()
@@ -24,7 +24,7 @@ export function CryptoTools() {
   const [base64Mode, setBase64Mode] = useState<'encode' | 'decode'>('encode')
 
   // 哈希状态
-  const [hashAlgorithm, setHashAlgorithm] = useState('sha256')
+  const [hashAlgorithm, setHashAlgorithm] = useState<HashAlgorithm>('sha256')
 
   // AES 状态
   const [aesKey, setAesKey] = useState('')
@@ -102,7 +102,7 @@ export function CryptoTools() {
       return
     }
 
-    const result = hash(input, hashAlgorithm as any)
+    const result = hash(input, hashAlgorithm)
 
     if (result.success) {
       setOutput(result.result || '')
@@ -150,7 +150,7 @@ export function CryptoTools() {
       const result = sm3Hash(sm3Input)
       setSm3Output(result)
       showToast('SM3 哈希计算成功', 'success')
-    } catch (err) {
+    } catch {
       showToast('SM3 哈希计算失败', 'error')
     }
   }
@@ -192,7 +192,7 @@ export function CryptoTools() {
           return
         }
         finalKey = hexResult
-      } catch (err) {
+      } catch {
         setSm4Error('Base64解码失败')
         return
       }
@@ -225,7 +225,7 @@ export function CryptoTools() {
         finalKey = Array.from(keyBytes)
           .map(b => b.toString(16).padStart(2, '0'))
           .join('')
-      } catch (err) {
+      } catch {
         setSm4Error('字符串密钥转换失败')
         return
       }
@@ -239,7 +239,7 @@ export function CryptoTools() {
       setSm4Output(result)
       setSm4Error('')
       showToast(sm4Mode === 'encrypt' ? 'SM4 加密成功' : 'SM4 解密成功', 'success')
-    } catch (err) {
+    } catch {
       setSm4Error(sm4Mode === 'encrypt' ? 'SM4 加密失败' : 'SM4 解密失败，请检查密钥')
       setSm4Output('')
       showToast('操作失败', 'error')
@@ -252,7 +252,7 @@ export function CryptoTools() {
       const keyPair = sm2GenerateKeyPair()
       setSm2KeyPair(keyPair)
       showToast('SM2 密钥对生成成功', 'success')
-    } catch (err) {
+    } catch {
       showToast('密钥生成失败', 'error')
     }
   }
@@ -279,7 +279,7 @@ export function CryptoTools() {
       const signature = sm2Sign(sm2SignMessage, sm2SignPrivateKey)
       setSm2SignResult(signature)
       showToast('SM2 签名成功', 'success')
-    } catch (err) {
+    } catch {
       showToast('签名失败', 'error')
     }
   }
@@ -311,7 +311,7 @@ export function CryptoTools() {
       const isValid = sm2VerifySignature(sm2SignMessage, sm2VerifySig, sm2VerifyPublicKey)
       setSm2VerifyResult(isValid)
       showToast(isValid ? '✅ 签名验证成功' : '❌ 签名验证失败', isValid ? 'success' : 'error')
-    } catch (err) {
+    } catch {
       showToast('验签失败', 'error')
     }
   }
@@ -336,7 +336,7 @@ export function CryptoTools() {
       setSm2EncOutput(result)
       setSm2EncError('')
       showToast(sm2EncMode === 'encrypt' ? 'SM2 加密成功' : 'SM2 解密成功', 'success')
-    } catch (err) {
+    } catch {
       setSm2EncError(sm2EncMode === 'encrypt' ? 'SM2 加密失败' : 'SM2 解密失败，请检查密钥')
       setSm2EncOutput('')
       showToast('操作失败', 'error')
@@ -451,7 +451,7 @@ export function CryptoTools() {
               <Select
                 label="哈希算法"
                 value={hashAlgorithm}
-                onChange={(e) => setHashAlgorithm(e.target.value)}
+                onChange={(e) => setHashAlgorithm(e.target.value as HashAlgorithm)}
                 options={[
                   { value: 'md5', label: 'MD5' },
                   { value: 'sha1', label: 'SHA-1' },

@@ -1,12 +1,22 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Select } from '@/components/ui/Select'
 import { explain, validate, schedule, generate } from '@/lib/cron'
-import { Copy, Check } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import {
+  AiError,
+  buildCronMessages,
+  extractCronFromResponse,
+  loadAiSettings,
+  streamChatCompletion,
+  useToolAiContext,
+  type CronFormat,
+} from '@/lib/ai'
+import { Copy, Check, Sparkles, Square } from 'lucide-react'
+import { useToast } from '@/components/ui/useToast'
 
 export function CronTools() {
   const [input, setInput] = useState('0 0 12 * * ?')
@@ -18,7 +28,14 @@ export function CronTools() {
   const [generateConfig, setGenerateConfig] = useState({
     preset: 'daily'
   })
+  const [cronFormat, setCronFormat] = useState<CronFormat>('six-field')
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiStreaming, setAiStreaming] = useState(false)
+  const [aiOutput, setAiOutput] = useState('')
+  const aiAbortRef = useRef<AbortController | null>(null)
   const { showToast } = useToast()
+
+  useToolAiContext('Cron 表达式', () => input)
 
   const handleExplain = () => {
     if (!input.trim()) {
@@ -33,7 +50,7 @@ export function CronTools() {
     try {
       const scheduled = schedule(input, new Date(), runCount)
       setNextRuns(scheduled.nextRuns)
-    } catch (err) {
+    } catch {
       setNextRuns([])
     }
   }
@@ -63,6 +80,57 @@ export function CronTools() {
     } catch (err) {
       setError(err instanceof Error ? err.message : '生成失败')
       setOutput('')
+    }
+  }
+
+  // AI 生成 cron：流式生成，填入后用本地校验器把关
+  const handleAiGenerate = async () => {
+    if (aiStreaming) return
+    const description = aiPrompt.trim()
+    if (!description) return
+    const aiSettings = loadAiSettings()
+    if (!aiSettings.model.trim()) {
+      showToast('请先在「AI 设置」中配置接口和模型', 'error')
+      return
+    }
+    const controller = new AbortController()
+    aiAbortRef.current = controller
+    setAiStreaming(true)
+    setAiOutput('')
+    try {
+      let full = ''
+      await streamChatCompletion(aiSettings, buildCronMessages(description, cronFormat), {
+        signal: controller.signal,
+        onDelta: (delta) => {
+          full += delta
+          setAiOutput(full)
+        },
+      })
+      const expression = extractCronFromResponse(full)
+      if (!expression) {
+        showToast('AI 未返回有效的表达式', 'error')
+      } else {
+        setInput(expression)
+        const result = validate(expression)
+        if (result.valid) {
+          setOutput(`AI 生成: ${expression}`)
+          setError('')
+          showToast('已生成 Cron 表达式，可回「解释 & 测试」查看执行时间', 'success')
+        } else {
+          setOutput('')
+          setError(`AI 返回的「${expression}」未通过本地校验，请人工确认`)
+          showToast('已填入，但本地校验未通过', 'error')
+        }
+      }
+    } catch (error) {
+      if (error instanceof AiError && error.kind === 'aborted') {
+        showToast('已取消生成', 'info')
+      } else {
+        showToast(error instanceof Error ? error.message : String(error), 'error')
+      }
+    } finally {
+      setAiStreaming(false)
+      aiAbortRef.current = null
     }
   }
 
@@ -223,53 +291,119 @@ export function CronTools() {
         </TabsContent>
 
         <TabsContent value="generate">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cron 表达式生成</CardTitle>
-              <CardDescription>
-                通过预设生成常用的 Cron 表达式
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select
-                label="预设模式"
-                value={generateConfig.preset}
-                onChange={(e) => setGenerateConfig({ ...generateConfig, preset: e.target.value })}
-                options={[
-                  { value: 'everyMinute', label: '每分钟' },
-                  { value: 'every5min', label: '每 5 分钟' },
-                  { value: 'every15min', label: '每 15 分钟' },
-                  { value: 'every30min', label: '每 30 分钟' },
-                  { value: 'hourly', label: '每小时' },
-                  { value: 'daily', label: '每天（中午12点）' },
-                  { value: 'weekly', label: '每周' },
-                  { value: 'monthly', label: '每月' },
-                  { value: 'workdays', label: '工作日（上午9点）' },
-                ]}
-              />
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Cron 表达式生成</CardTitle>
+                <CardDescription>
+                  通过预设生成常用的 Cron 表达式
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Select
+                  label="预设模式"
+                  value={generateConfig.preset}
+                  onChange={(e) => setGenerateConfig({ ...generateConfig, preset: e.target.value })}
+                  options={[
+                    { value: 'everyMinute', label: '每分钟' },
+                    { value: 'every5min', label: '每 5 分钟' },
+                    { value: 'every15min', label: '每 15 分钟' },
+                    { value: 'every30min', label: '每 30 分钟' },
+                    { value: 'hourly', label: '每小时' },
+                    { value: 'daily', label: '每天（中午12点）' },
+                    { value: 'weekly', label: '每周' },
+                    { value: 'monthly', label: '每月' },
+                    { value: 'workdays', label: '工作日（上午9点）' },
+                  ]}
+                />
 
-              <Button onClick={handleGenerate}>生成表达式</Button>
+                <Button onClick={handleGenerate}>生成表达式</Button>
 
-              {input && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">生成的表达式：</label>
-                  <Textarea
-                    value={input}
-                    readOnly
-                    className="min-h-[80px] font-mono text-sm"
+                {input && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">生成的表达式：</label>
+                    <Textarea
+                      value={input}
+                      readOnly
+                      className="min-h-[80px] font-mono text-sm"
+                    />
+                    <Button
+                      onClick={handleCopy}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      复制表达式
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-fuchsia-500" />
+                  AI 生成
+                </CardTitle>
+                <CardDescription>
+                  用自然语言描述执行计划，AI 生成表达式并自动填入；复杂计划可回「解释 &amp; 测试」核对执行时间
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Select
+                  label="表达式格式"
+                  value={cronFormat}
+                  onChange={(e) => setCronFormat(e.target.value as CronFormat)}
+                  options={[
+                    { value: 'six-field', label: '6 段（Quartz / Spring）' },
+                    { value: 'five-field', label: '5 段（Linux crontab）' },
+                  ]}
+                />
+
+                <div className="flex gap-2">
+                  <Input
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.nativeEvent.isComposing && !aiStreaming) {
+                        handleAiGenerate()
+                      }
+                    }}
+                    placeholder="如：每周一到周五早上 9 点执行"
+                    disabled={aiStreaming}
                   />
-                  <Button
-                    onClick={handleCopy}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <Copy className="h-4 w-4" />
-                    复制表达式
-                  </Button>
+                  {aiStreaming ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => aiAbortRef.current?.abort()}
+                      className="shrink-0 whitespace-nowrap"
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      取消
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleAiGenerate}
+                      disabled={!aiPrompt.trim()}
+                      className="shrink-0 whitespace-nowrap"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      AI 生成
+                    </Button>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                {aiStreaming && (
+                  <div className="font-mono text-xs text-muted-foreground break-all">
+                    {aiOutput || '生成中…'}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  需先在「AI 设置」中配置服务；生成后会用本地校验器自动把关
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 

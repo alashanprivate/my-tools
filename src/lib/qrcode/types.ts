@@ -1,4 +1,9 @@
 /**
+ * 二维码容错级别
+ */
+export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H'
+
+/**
  * 二维码颜色选项
  */
 export interface QRCodeColor {
@@ -13,7 +18,7 @@ export interface QRCodeOptions {
   width?: number          // 二维码宽度（默认: 300）
   margin?: number         // 边距（默认: 4）
   color?: QRCodeColor     // 颜色配置
-  errorCorrectionLevel?: 'L' | 'M' | 'Q' | 'H'  // 容错级别（默认: M）
+  errorCorrectionLevel?: ErrorCorrectionLevel  // 容错级别（默认: M）
 }
 
 /**

@@ -15,12 +15,12 @@ export function schedule(
   const parsed = parse(expression)
   const nextRuns: Date[] = []
 
-  let currentDate = new Date(startDate)
+  const currentDate = new Date(startDate)
   // 重置秒数为 0，然后前进到下一分钟
   currentDate.setSeconds(0)
   currentDate.setMinutes(currentDate.getMinutes() + 1)
 
-  let maxIterations = count * 10000 // 防止无限循环
+  const maxIterations = count * 10000 // 防止无限循环
   let iterations = 0
 
   while (nextRuns.length < count && iterations < maxIterations) {

@@ -9,7 +9,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, error, ...props }, ref) => {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {label && (
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}

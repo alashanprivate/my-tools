@@ -10,7 +10,7 @@ export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, options, ...props }, ref) => {
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {label && (
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {label}

@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/Label'
 import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
 import { JsonTree } from '@/components/ui/JsonTree'
-import { signJwt, verifyJwt, decodeJwt } from '@/lib/jwt'
+import { signJwt, verifyJwt, decodeJwt, type JwtAlgorithm } from '@/lib/jwt'
 import { Copy, Check, Plus, Trash2 } from 'lucide-react'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/components/ui/useToast'
 
 type TabType = 'sign' | 'verify' | 'decode'
 
@@ -18,7 +18,7 @@ export function JwtTool() {
   const { showToast } = useToast()
 
   // 生成 JWT 状态
-  const [signAlgorithm, setSignAlgorithm] = useState<string>('HS256')
+  const [signAlgorithm, setSignAlgorithm] = useState<JwtAlgorithm>('HS256')
   const [signSecret, setSignSecret] = useState('your-secret-key')
   const [signPayloadIss, setSignPayloadIss] = useState('')
   const [signPayloadSub, setSignPayloadSub] = useState('')
@@ -77,7 +77,7 @@ export function JwtTool() {
       }
 
       const result = await signJwt({
-        algorithm: signAlgorithm as any,
+        algorithm: signAlgorithm,
         payload,
         secret: signSecret,
       })
@@ -212,7 +212,7 @@ export function JwtTool() {
                 <Label>算法</Label>
                 <Select
                   value={signAlgorithm}
-                  onChange={(e) => setSignAlgorithm(e.target.value)}
+                  onChange={(e) => setSignAlgorithm(e.target.value as JwtAlgorithm)}
                   options={[
                     { value: 'HS256', label: 'HS256 (HMAC-SHA256)' },
                     { value: 'HS384', label: 'HS384 (HMAC-SHA384)' },

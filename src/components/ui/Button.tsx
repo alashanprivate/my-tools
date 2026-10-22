@@ -10,7 +10,6 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'md', asChild = false, children, ...props }, ref) => {
     if (asChild) {
-      // @ts-ignore - allow rendering child component
       return <>{children}</>
     }
 

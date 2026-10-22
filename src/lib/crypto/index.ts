@@ -45,7 +45,7 @@ export function base64Decode(input: string): CryptoResult {
       success: true,
       result,
     }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '无效的 Base64 字符串',
@@ -108,7 +108,10 @@ export function aesEncrypt(plaintext: string, options: AesOptions): CryptoResult
 
   try {
     // 配置加密选项
-    const cryptoOptions: Record<string, any> = {}
+    const cryptoOptions: {
+      mode?: typeof CryptoJS.mode.CBC
+      padding?: typeof CryptoJS.pad.Pkcs7
+    } = {}
 
     // 设置模式
     switch (mode) {
@@ -183,7 +186,10 @@ export function aesDecrypt(ciphertext: string, options: AesOptions): CryptoResul
 
   try {
     // 配置解密选项
-    const cryptoOptions: Record<string, any> = {}
+    const cryptoOptions: {
+      mode?: typeof CryptoJS.mode.CBC
+      padding?: typeof CryptoJS.pad.Pkcs7
+    } = {}
 
     // 设置模式
     switch (mode) {
@@ -236,7 +242,7 @@ export function aesDecrypt(ciphertext: string, options: AesOptions): CryptoResul
       success: true,
       result,
     }
-  } catch (error) {
+  } catch {
     return {
       success: false,
       error: '解密失败，请检查密钥和密文是否正确',
@@ -611,3 +617,11 @@ export function sm4Decrypt(ciphertext: string, options: Sm4Options): CryptoResul
     }
   }
 }
+
+// 导出类型
+export type {
+  HashAlgorithm,
+  EncodingAlgorithm,
+  AesOptions,
+  CryptoResult,
+} from './types'

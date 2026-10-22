@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: npm
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -25,23 +26,16 @@ jobs:
       - name: configure Rust
         run: rustup default stable
 
+      - name: cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
       - name: install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: sync version to tauri.conf.json
-        run: |
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "github.ref_name=${{ github.ref_name }}"
-          node -e "
-            const fs = require('fs');
-            const ref = process.env.GITHUB_REF || '';
-            const v = ref.replace('refs/tags/v', '').replace('refs/tags/', '');
-            console.log('version:', v);
-            const c = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            c.version = v;
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(c, null, 2) + '\n');
-            console.log('Updated tauri.conf.json version to:', v);
-          "
+        uses: ./.github/actions/sync-version
 
       - name: build tauri
         run: npm run tauri build
@@ -67,6 +61,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: npm
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -74,23 +69,16 @@ jobs:
       - name: configure Rust
         run: rustup default stable
 
+      - name: cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
       - name: install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: sync version to tauri.conf.json
-        run: |
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "github.ref_name=${{ github.ref_name }}"
-          node -e "
-            const fs = require('fs');
-            const ref = process.env.GITHUB_REF || '';
-            const v = ref.replace('refs/tags/v', '').replace('refs/tags/', '');
-            console.log('version:', v);
-            const c = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            c.version = v;
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(c, null, 2) + '\n');
-            console.log('Updated tauri.conf.json version to:', v);
-          "
+        uses: ./.github/actions/sync-version
 
       - name: build tauri
         run: npm run tauri build
@@ -116,6 +104,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: npm
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -123,28 +112,21 @@ jobs:
       - name: configure Rust
         run: rustup default stable
 
-      - name: install dependencies
+      - name: cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: install frontend dependencies
-        run: npm install
+        run: npm ci
 
       - name: sync version to tauri.conf.json
-        run: |
-          echo "GITHUB_REF=$GITHUB_REF"
-          echo "github.ref_name=${{ github.ref_name }}"
-          node -e "
-            const fs = require('fs');
-            const ref = process.env.GITHUB_REF || '';
-            const v = ref.replace('refs/tags/v', '').replace('refs/tags/', '');
-            console.log('version:', v);
-            const c = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
-            c.version = v;
-            fs.writeFileSync('src-tauri/tauri.conf.json', JSON.stringify(c, null, 2) + '\n');
-            console.log('Updated tauri.conf.json version to:', v);
-          "
+        uses: ./.github/actions/sync-version
 
       - name: build tauri
         run: npm run tauri build
