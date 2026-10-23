@@ -9,6 +9,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="开发者工具集合 - JSON格式化、加解密、文本处理等实用工具" />
     <title>开发者工具</title>
+    <script>
+      // 首帧前应用主题，避免深色用户启动时闪白；键值由 src/lib/theme.ts 维护。
+      // 'dark' 直接深色；'light' 直接浅色；其余（'system'/缺失/损坏）跟随系统。
+      // 配色方案值直接作为 data-theme 属性；CSS 无对应变量块时自然回落默认蓝，无需白名单。
+      ;(function () {
+        try {
+          var mode = localStorage.getItem('theme')
+          var dark = mode === 'dark' || (mode !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) document.documentElement.classList.add('dark')
+          var scheme = localStorage.getItem('theme-scheme')
+          if (scheme) document.documentElement.setAttribute('data-theme', scheme)
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

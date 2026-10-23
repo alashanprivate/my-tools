@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import { AskAiDialog } from '@/components/ai/AskAiDialog'
+import { AskAiPanel } from '@/components/ai/AskAiPanel'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
 
@@ -9,11 +9,13 @@ export function Layout() {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="min-w-0 flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
+        <div className="flex min-h-0 flex-1">
+          <main className="min-w-0 flex-1 overflow-y-auto">
+            <Outlet />
+          </main>
+          <AskAiPanel />
+        </div>
       </div>
-      <AskAiDialog />
     </div>
   )
 }

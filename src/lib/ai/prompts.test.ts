@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildAskMessages,
+  buildAskConversationMessages,
   buildCronMessages,
   buildExceptionMessages,
   buildJavaEntityMessages,
@@ -185,22 +185,35 @@ describe('buildMockDataMessages', () => {
   })
 })
 
-describe('buildAskMessages', () => {
-  it('携带上下文时包含工具名、上下文与问题', () => {
-    const messages = buildAskMessages('这段正则在干嘛', {
+describe('buildAskConversationMessages', () => {
+  it('携带上下文时 system 包含工具名与上下文', () => {
+    const messages = buildAskConversationMessages([{ role: 'user', content: '这段正则在干嘛' }], {
       toolName: '正则表达式',
       content: '/\\d+/g',
     })
-    expect(messages[1].content).toContain('【当前上下文 · 正则表达式】')
-    expect(messages[1].content).toContain('/\\d+/g')
-    expect(messages[1].content).toContain('【问题】')
-    expect(messages[1].content).toContain('这段正则在干嘛')
+    expect(messages[0].role).toBe('system')
+    expect(messages[0].content).toContain('【当前上下文 · 正则表达式】')
+    expect(messages[0].content).toContain('/\\d+/g')
+    expect(messages[1]).toEqual({ role: 'user', content: '这段正则在干嘛' })
   })
 
-  it('无上下文时用户消息就是问题本身', () => {
-    const messages = buildAskMessages('你好', null)
-    expect(messages[1].content).toBe('你好')
-    expect(messages[1].content).not.toContain('当前上下文')
+  it('无上下文时 system 不包含上下文段落', () => {
+    const messages = buildAskConversationMessages([{ role: 'user', content: '你好' }], null)
+    expect(messages[0].content).not.toContain('当前上下文')
+    expect(messages[1]).toEqual({ role: 'user', content: '你好' })
+  })
+
+  it('历史轮次按原顺序完整携带，支持连续追问', () => {
+    const messages = buildAskConversationMessages([
+      { role: 'user', content: '第一问' },
+      { role: 'assistant', content: '第一答' },
+      { role: 'user', content: '第二问' },
+    ])
+    expect(messages.slice(1)).toEqual([
+      { role: 'user', content: '第一问' },
+      { role: 'assistant', content: '第一答' },
+      { role: 'user', content: '第二问' },
+    ])
   })
 })
 

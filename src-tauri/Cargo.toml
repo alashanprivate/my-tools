@@ -15,10 +15,19 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# unstable：启用多 webview，AI 对话以子 webview 内嵌在主窗口功能区展示
+tauri = { version = "2", features = ["unstable"] }
 tauri-plugin-shell = "2"
+tauri-plugin-store = "2"
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# 与 tauri/wry 锁定同一 0.39 版本，在 with_webview 平台句柄上
+# 直接调 WebView2 COM 设置子 webview 的 prefers-color-scheme
+[target."cfg(windows)".dependencies]
+webview2-com = "0.39"
+windows = { version = "0.62", default-features = false }
 
 [features]
 default = ["custom-protocol"]

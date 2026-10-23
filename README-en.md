@@ -9,10 +9,16 @@
 | Tool | Route | Description |
 |------|-------|-------------|
 | **JSON Formatter** | `/json` | Format, minify, validate, auto-fix |
-| **Crypto** | `/crypto` | Base64, Hash, AES, SM2/SM3/SM4 |
+| **Base64** | `/base64` | Base64 encode and decode |
+| **Hash** | `/hash` | MD5, SHA-1, SHA-256, SHA-512 |
+| **AES** | `/aes` | AES symmetric encryption/decryption |
+| **SM2** | `/sm2` | Chinese SM2 keygen, sign/verify, encrypt/decrypt |
+| **SM3** | `/sm3` | Chinese SM3 hash algorithm |
+| **SM4** | `/sm4` | Chinese SM4 block cipher |
 | **Cron Expression** | `/cron` | Generate, explain, validate, test |
 | **JWT Tools** | `/jwt` | Sign, decode, verify JWT tokens |
 | **Regex** | `/regex` | Test, templates, code generation |
+| **Diff Tool** | `/diff` | Line diff, split/unified views, copy patch |
 | **Timestamp** | `/time` | Convert, timezone, date calc |
 | **QR Code** | `/qrcode` | Generate, decode QR codes |
 | **ID Card** | `/idcard` | Generate, validate Chinese ID |
@@ -63,10 +69,13 @@ npm run tauri:dev
 ### Build
 
 ```bash
-# Web app
+# Desktop frontend (invoked automatically by Tauri; root-based asset paths)
 npm run build
 
-# Desktop app
+# Web build (static assets with /my-tools/ prefix, see "Web Deployment" below)
+npm run build:web
+
+# Desktop app installer
 npm run tauri:build
 ```
 
@@ -99,6 +108,47 @@ src-tauri/target/release/my-tools.exe  # Executable
 
 **Note:** First build takes 5-10 minutes to compile Rust dependencies.
 
+## Web Deployment
+
+The web version is a pure static SPA deployed under the `my-tools/` prefix of an Aliyun OSS bucket, served via a custom domain.
+
+### Build mechanism
+
+The sub-path prefix is controlled by `VITE_BASE_PATH` in `.env.web` (currently `/my-tools/`) and only applies to `build:web` (`vite build --mode web`):
+
+- `npm run build:web` → asset URLs carry the `/my-tools/` prefix, for OSS sub-path deployment
+- `npm run build` / `npm run tauri:build` → root-based asset URLs for the desktop app; the two do not interfere
+- The router `basename` (`src/App.tsx`) reads the same variable and stays in sync with the Vite `base`
+
+### Release steps
+
+```bash
+# 1. Build (output in dist/)
+npm run build:web
+
+# 2. Upload via ossutil (replace <bucket> with the actual bucket name)
+ossutil cp -rf dist/ oss://<bucket>/my-tools/ --update
+# index.html must not be cached so new versions take effect immediately
+ossutil cp -f dist/index.html oss://<bucket>/my-tools/index.html --meta Cache-Control:no-cache
+```
+
+### OSS console setup (one-time)
+
+Bucket → Data Management → Static Website Hosting:
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| Default homepage | `index.html` | Bucket root entry |
+| Subdirectory homepage | Enabled, 404 rule **Index** | `/my-tools` directly serves the subdirectory `index.html` (200, URL unchanged) |
+| Default 404 page | `my-tools/index.html` | SPA fallback for deep routes (e.g. `/my-tools/jwt`) on refresh / direct access |
+
+**Notes:**
+
+- Entry URL is `https://<domain>/my-tools/` — **without** `index.html` (after basename stripping, `/index.html` matches no route and renders blank)
+- HTML served via the default OSS domain is force-downloaded; a custom domain is required. Static hosting is bucket-level config and changes 404 behavior for the whole bucket (evaluate for shared buckets)
+- AI requests go directly from the browser to each provider; availability depends on the provider allowing CORS
+- After uploading a new version, hard-refresh (Ctrl+F5) if the old page persists (browser-cached `index.html`)
+
 ## Project Structure
 
 ```
@@ -122,10 +172,16 @@ src/
 │   │   └── Footer.tsx
 │   └── tools/           # Tool pages
 │       ├── JsonFormatter.tsx
-│       ├── CryptoTools.tsx
+│       ├── Base64Tool.tsx
+│       ├── HashTool.tsx
+│       ├── AesTool.tsx
+│       ├── Sm2Tool.tsx
+│       ├── Sm3Tool.tsx
+│       ├── Sm4Tool.tsx
 │       ├── CronTools.tsx
 │       ├── JwtTool.tsx
 │       ├── RegexTool.tsx
+│       ├── DiffTool.tsx
 │       ├── TimeTool.tsx
 │       ├── QRCodeTool.tsx
 │       └── IdCardTool.tsx
@@ -138,6 +194,7 @@ src/
     ├── cron/            # Cron expression
     ├── jwt/             # JWT
     ├── regex/           # Regex
+    ├── diff/            # Text diff (Myers algorithm)
     ├── time/            # Timestamp
     ├── qrcode/          # QR code
     └── idCard/          # ID card
@@ -163,14 +220,16 @@ src-tauri/               # Tauri desktop app
 - Auto-fix (quotes, trailing commas, comments)
 - Key sorting
 
-### Crypto (/crypto)
+### Crypto (/base64, /hash, /aes, /sm2, /sm3, /sm4)
 
-- **Base64** - Encode/decode
-- **Hash** - MD5, SHA-1, SHA-256, SHA-512
-- **AES** - Encrypt/decrypt
-- **SM2** - Sign/verify
-- **SM3** - Hash
-- **SM4** - Encrypt/decrypt
+Each algorithm has its own page:
+
+- **Base64** (/base64) - Encode/decode
+- **Hash** (/hash) - MD5, SHA-1, SHA-256, SHA-512
+- **AES** (/aes) - Encrypt/decrypt
+- **SM2** (/sm2) - Keygen, sign/verify, encrypt/decrypt
+- **SM3** (/sm3) - Hash
+- **SM4** (/sm4) - Encrypt/decrypt (hex/Base64/string key formats)
 
 ### Cron Expression (/cron)
 
@@ -191,6 +250,14 @@ src-tauri/               # Tauri desktop app
 - Real-time test
 - Common templates
 - Code generation
+
+### Diff Tool (/diff)
+
+- Real-time line diff (Myers algorithm, computed locally)
+- Split view (aligned removals/additions with inline highlights)
+- Unified view (git diff style)
+- Ignore whitespace / ignore case
+- Copy unified diff text (applicable with `git apply`)
 
 ### Timestamp (/time)
 

@@ -48,7 +48,7 @@ export function SqlAssistant() {
 
   const handleRun = async () => {
     if (streaming || !canSubmit) return
-    const aiSettings = loadAiSettings()
+    const aiSettings = await loadAiSettings()
     if (!aiSettings.model.trim()) {
       showToast('请先在「AI 设置」中配置接口和模型', 'error')
       return

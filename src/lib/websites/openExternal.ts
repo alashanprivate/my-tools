@@ -1,7 +1,4 @@
-/** 是否运行在 Tauri 桌面端（区别于 npm run dev 的纯浏览器环境） */
-export function isTauri(): boolean {
-  return '__TAURI_INTERNALS__' in window
-}
+import { isTauri } from '@/lib/environment'
 
 /**
  * 打开外链：桌面端走 shell 插件用系统默认浏览器（target="_blank" 会被 WebView 拦截），

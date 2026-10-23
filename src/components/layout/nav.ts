@@ -1,9 +1,9 @@
 import {
-  Bot,
   Bug,
   Calendar,
   Clock,
   Database,
+  FileDiff,
   FileJson,
   FileSearch,
   Globe,
@@ -54,10 +54,10 @@ export const websiteNavItem: NavItem = {
   color: 'text-sky-500',
 }
 
-/** 一级菜单「AI 对话」：常用 AI 聊天入口，桌面端在应用内独立窗口打开（不进标签页） */
+/** 一级菜单「AI 对话」：常用 AI 聊天入口，桌面端点击后内嵌在功能区打开（不进标签页） */
 export const aiChatNavItem: NavItem = {
   title: 'AI 对话',
-  description: '常用 AI 聊天入口，应用内窗口打开',
+  description: '常用 AI 聊天入口，桌面端内嵌在功能区打开',
   path: '/ai-chat',
   icon: MessagesSquare,
   color: 'text-indigo-500',
@@ -81,6 +81,13 @@ export const navGroups: NavGroup[] = [
         icon: FileSearch,
         color: 'text-lime-500',
       },
+      {
+        title: '代码比对',
+        description: '对比两段文本/代码差异，支持并排与统一视图',
+        path: '/diff',
+        icon: FileDiff,
+        color: 'text-orange-500',
+      },
     ],
   },
   {
@@ -89,42 +96,42 @@ export const navGroups: NavGroup[] = [
       {
         title: 'Base64 编解码',
         description: 'Base64 编码和解码',
-        path: '/crypto?tab=base64',
+        path: '/base64',
         icon: Lock,
         color: 'text-green-500',
       },
       {
         title: '哈希计算',
         description: 'MD5、SHA-1、SHA-256、SHA-512',
-        path: '/crypto?tab=hash',
+        path: '/hash',
         icon: Hash,
         color: 'text-purple-500',
       },
       {
         title: 'AES 加解密',
         description: 'AES-256 加密和解密',
-        path: '/crypto?tab=aes',
+        path: '/aes',
         icon: Lock,
         color: 'text-orange-500',
       },
       {
         title: 'SM2 签名验签',
         description: '国密 SM2 椭圆曲线签名',
-        path: '/crypto?tab=sm2',
+        path: '/sm2',
         icon: Shield,
         color: 'text-red-500',
       },
       {
         title: 'SM3 哈希',
         description: '国密 SM3 密码杂凑算法',
-        path: '/crypto?tab=sm3',
+        path: '/sm3',
         icon: Hash,
         color: 'text-pink-500',
       },
       {
         title: 'SM4 加解密',
         description: '国密 SM4 分组密码算法',
-        path: '/crypto?tab=sm4',
+        path: '/sm4',
         icon: Key,
         color: 'text-indigo-500',
       },
@@ -192,13 +199,6 @@ export const navGroups: NavGroup[] = [
         icon: Database,
         color: 'text-emerald-500',
       },
-      {
-        title: 'AI 设置',
-        description: '多档案配置 OpenAI 兼容接口，接入本地或云端大模型',
-        path: '/ai',
-        icon: Bot,
-        color: 'text-fuchsia-500',
-      },
     ],
   },
 ]
@@ -222,8 +222,8 @@ export function getNavItemByPath(path: string): NavItem | undefined {
 
 /**
  * 判断导航项是否对应当前路由。
- * 普通项按路径精确匹配；带 ?tab= 的项还要求当前 URL 的 tab 参数一致，
- * 避免访问 /crypto 时加解密分组内所有项同时高亮。
+ * 普通项按路径精确匹配；带 ?tab= 的项还要求当前 URL 的 tab 参数一致
+ * （供未来需要子路径区分的工具使用）。
  */
 export function isNavItemActive(item: NavItem, pathname: string, search: string): boolean {
   const [basePath, query] = item.path.split('?')

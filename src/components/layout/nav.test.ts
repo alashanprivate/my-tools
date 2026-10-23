@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { House } from 'lucide-react'
 import {
   allNavItems,
   getNavItemByPath,
@@ -6,6 +7,7 @@ import {
   isNavItemActive,
   toolsSection,
   websiteNavItem,
+  type NavItem,
 } from './nav'
 
 const topNavItems = [...allNavItems, homeItem, websiteNavItem]
@@ -15,6 +17,15 @@ const findItem = (path: string) => {
   if (!item) throw new Error(`导航配置中不存在路径 ${path}`)
   return item
 }
+
+/** 构造带 ?tab= 的合成导航项，用于覆盖 tab 匹配逻辑（当前导航配置没有此类项） */
+const itemWithTab = (path: string): NavItem => ({
+  title: path,
+  description: '',
+  path,
+  icon: House,
+  color: '',
+})
 
 describe('nav 配置', () => {
   it('每个导航项的路径唯一', () => {
@@ -58,15 +69,15 @@ describe('isNavItemActive', () => {
   })
 
   it('带 tab 的路径要求当前 tab 参数一致', () => {
-    const base64 = findItem('/crypto?tab=base64')
-    const hash = findItem('/crypto?tab=hash')
-    expect(isNavItemActive(base64, '/crypto', '?tab=base64')).toBe(true)
-    expect(isNavItemActive(base64, '/crypto', '?tab=hash')).toBe(false)
-    expect(isNavItemActive(hash, '/crypto', '?tab=hash')).toBe(true)
+    const base64 = itemWithTab('/x?tab=base64')
+    const hash = itemWithTab('/x?tab=hash')
+    expect(isNavItemActive(base64, '/x', '?tab=base64')).toBe(true)
+    expect(isNavItemActive(base64, '/x', '?tab=hash')).toBe(false)
+    expect(isNavItemActive(hash, '/x', '?tab=hash')).toBe(true)
   })
 
-  it('访问 /crypto 不带 tab 参数时加密分组不高亮', () => {
-    const base64 = findItem('/crypto?tab=base64')
-    expect(isNavItemActive(base64, '/crypto', '')).toBe(false)
+  it('访问带 tab 的路径而不带 tab 参数时不高亮', () => {
+    const base64 = itemWithTab('/x?tab=base64')
+    expect(isNavItemActive(base64, '/x', '')).toBe(false)
   })
 })

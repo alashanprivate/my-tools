@@ -43,7 +43,7 @@ export function ExceptionAnalyzer() {
       showToast('未识别到 Java 异常堆栈，请检查输入', 'error')
       return
     }
-    const aiSettings = loadAiSettings()
+    const aiSettings = await loadAiSettings()
     if (!aiSettings.model.trim()) {
       showToast('请先在「AI 设置」中配置接口和模型', 'error')
       return

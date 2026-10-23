@@ -30,18 +30,26 @@ export function AiSettings() {
   const { showToast } = useToast()
 
   useEffect(() => {
-    const loaded = loadAiSettingsStore()
-    setStore(loaded)
-    const active = getActiveProfile(loaded)
-    setSettings(active.settings)
-    setProfileName(active.name)
+    let cancelled = false
+    void loadAiSettingsStore().then((loaded) => {
+      if (cancelled) return
+      setStore(loaded)
+      const active = getActiveProfile(loaded)
+      setSettings(active.settings)
+      setProfileName(active.name)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const update = (patch: Partial<AiSettingsConfig>) => setSettings((prev) => ({ ...prev, ...patch }))
 
   const persist = (next: AiSettingsStore) => {
     setStore(next)
-    saveAiSettingsStore(next)
+    void saveAiSettingsStore(next).catch(() => {
+      showToast('保存失败，请重试', 'error')
+    })
   }
 
   const normalized = (): AiSettingsConfig => ({
@@ -127,14 +135,7 @@ export function AiSettings() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-3xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">AI 设置</h1>
-        <p className="text-muted-foreground">
-          配置任意 OpenAI 兼容接口，供各工具的 AI 能力使用
-        </p>
-      </div>
-
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-2xl">
@@ -206,7 +207,7 @@ export function AiSettings() {
               placeholder="sk-..."
             />
             <p className="text-xs text-muted-foreground mt-1">
-              仅保存在本机 localStorage，请求由本机直接发往所填服务
+              仅保存在本机（桌面端存于应用数据目录），请求由本机直接发往所填服务
             </p>
           </div>
 
@@ -249,7 +250,7 @@ export function AiSettings() {
         </CardContent>
       </Card>
 
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg">隐私说明</CardTitle>
         </CardHeader>

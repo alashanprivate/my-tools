@@ -9,10 +9,16 @@
 | 工具 | 路由 | 说明 |
 |------|------|------|
 | **JSON 格式化** | `/json` | 格式化、压缩、验证、自动修复、AI 生成 Java 实体/Mock 数据 |
-| **加解密** | `/crypto` | Base64、哈希、AES、SM2/SM3/SM4 |
+| **Base64 编解码** | `/base64` | Base64 编码和解码 |
+| **哈希计算** | `/hash` | MD5、SHA-1、SHA-256、SHA-512 |
+| **AES 加解密** | `/aes` | AES 对称加密和解密 |
+| **SM2 签名验签** | `/sm2` | 国密 SM2 密钥生成、签名验签、加密解密 |
+| **SM3 哈希** | `/sm3` | 国密 SM3 密码杂凑算法 |
+| **SM4 加解密** | `/sm4` | 国密 SM4 分组密码算法 |
 | **Cron 表达式** | `/cron` | 生成、解释、验证、测试、AI 自然语言生成 |
 | **JWT 工具** | `/jwt` | 生成、解析、验证 JWT Token |
 | **正则表达式** | `/regex` | 测试、模板、代码生成 |
+| **代码比对** | `/diff` | 逐行比对差异，并排/统一视图，复制 unified diff |
 | **时间戳** | `/time` | 转换、时区、日期计算 |
 | **二维码** | `/qrcode` | 生成、解析二维码 |
 | **身份证** | `/idcard` | 生成、验证身份证信息 |
@@ -67,10 +73,13 @@ npm run tauri:dev
 ### 构建
 
 ```bash
-# Web 应用
+# 桌面应用前端（Tauri 打包自动调用；资源为根路径引用）
 npm run build
 
-# 桌面应用
+# Web 版静态产物（部署到 OSS 子路径，见下方「Web 版部署」）
+npm run build:web
+
+# 桌面应用完整安装包
 npm run tauri:build
 ```
 
@@ -102,6 +111,47 @@ src-tauri/target/release/my-tools.exe  # 可执行文件
 ```
 
 **注意：** 首次构建需要 5-10 分钟编译 Rust 依赖。
+
+## Web 版部署
+
+Web 版为纯静态单页应用，部署在阿里云 OSS 的 `my-tools/` 子目录下，绑定自定义域名访问。
+
+### 构建机制
+
+子路径前缀由 `.env.web` 的 `VITE_BASE_PATH` 控制（当前为 `/my-tools/`），仅在 `build:web`（`vite build --mode web`）时生效：
+
+- `npm run build:web` → 资源引用带 `/my-tools/` 前缀，用于 OSS 子路径部署
+- `npm run build` / `npm run tauri:build` → 根路径引用，桌面端使用，两者互不影响
+- 路由 `basename`（`src/App.tsx`）读取同一变量，与 vite `base` 保持一致
+
+### 发布步骤
+
+```bash
+# 1. 构建（产物在 dist/）
+npm run build:web
+
+# 2. 上传到 OSS（ossutil，<bucket> 替换为实际桶名）
+ossutil cp -rf dist/ oss://<bucket>/my-tools/ --update
+# index.html 不缓存，保证发新版立即生效
+ossutil cp -f dist/index.html oss://<bucket>/my-tools/index.html --meta Cache-Control:no-cache
+```
+
+### OSS 控制台配置（首次一次性）
+
+Bucket → 数据管理 → 静态网站托管：
+
+| 配置项 | 值 | 作用 |
+|--------|-----|------|
+| 默认首页 | `index.html` | 桶根入口 |
+| 子目录首页 | 开通，404 规则选 **Index** | 访问 `/my-tools` 直接返回子目录 `index.html`（200，地址栏不变） |
+| 默认 404 页 | `my-tools/index.html` | SPA 深层路由（如 `/my-tools/jwt`）刷新/直达兜底 |
+
+**注意：**
+
+- 入口地址用 `https://<domain>/my-tools/`，**不要带 `index.html`**（basename 剥离后 `/index.html` 匹配不到路由，会白屏）
+- 通过 OSS 默认域名访问 HTML 会被强制下载，必须绑定自定义域名；静态网站托管是桶级配置，会改变整个桶的 404 行为（共享桶需评估影响）
+- AI 请求由浏览器直连各服务商，能否使用取决于服务商是否允许浏览器跨域（CORS）
+- 上传新版本后如仍看到旧页面，先 Ctrl+F5 强制刷新（旧 `index.html` 可能被浏览器缓存）
 
 ## 打包发布
 
@@ -207,7 +257,12 @@ src/
 │   │   └── nav.ts
 │   └── tools/           # 工具页面
 │       ├── JsonFormatter.tsx
-│       ├── CryptoTools.tsx
+│       ├── Base64Tool.tsx
+│       ├── HashTool.tsx
+│       ├── AesTool.tsx
+│       ├── Sm2Tool.tsx
+│       ├── Sm3Tool.tsx
+│       ├── Sm4Tool.tsx
 │       ├── CronTools.tsx
 │       ├── JwtTool.tsx
 │       ├── RegexTool.tsx
@@ -216,7 +271,8 @@ src/
     │       ├── IdCardTool.tsx
     │       ├── ExceptionAnalyzer.tsx
     │       ├── SqlAssistant.tsx
-    │       └── AiSettings.tsx
+    │       ├── AiSettings.tsx
+    │       └── DiffTool.tsx
 └── lib/                 # 工具函数库
     ├── utils.ts         # 通用工具
     ├── json/            # JSON 处理
@@ -230,6 +286,7 @@ src/
     ├── qrcode/          # 二维码
     ├── idCard/          # 身份证
     ├── exception/       # Java 异常堆栈解析
+    ├── diff/            # 文本差异比对（Myers 算法）
     └── ai/              # AI 能力（OpenAI 兼容流式客户端、设置存储）
 ```
 
@@ -255,14 +312,16 @@ src-tauri/               # Tauri 桌面应用
 - AI 生成 Java 实体类（可选包名、Lombok @Data，嵌套对象与数组自动拆类）
 - AI 生成 Mock 数据（以输入 JSON 为结构样例批量生成模拟数据，可加数量/取值约束）
 
-### 加解密 (/crypto)
+### 加解密 (/base64、/hash、/aes、/sm2、/sm3、/sm4)
 
-- **Base64** - 编码/解码
-- **哈希** - MD5, SHA-1, SHA-256, SHA-512
-- **AES** - 加密/解密
-- **SM2** - 签名/验签
-- **SM3** - 哈希
-- **SM4** - 加密/解密
+每个算法独立页面：
+
+- **Base64** (/base64) - 编码/解码
+- **哈希计算** (/hash) - MD5, SHA-1, SHA-256, SHA-512
+- **AES** (/aes) - 加密/解密
+- **SM2** (/sm2) - 密钥生成、签名/验签、加密/解密
+- **SM3** (/sm3) - 哈希
+- **SM4** (/sm4) - 加密/解密（支持 hex/Base64/字符串密钥）
 
 ### Cron 表达式 (/cron)
 
@@ -284,6 +343,14 @@ src-tauri/               # Tauri 桌面应用
 - 实时测试
 - 常用模板
 - 代码生成
+
+### 代码比对 (/diff)
+
+- 逐行实时比对（Myers 差异算法，纯本地计算）
+- 并排视图（删除/新增对齐，行内变化高亮）
+- 统一视图（git diff 风格）
+- 忽略空白 / 忽略大小写
+- 复制 unified diff 文本（可直接 `git apply`）
 
 ### 时间戳 (/time)
 

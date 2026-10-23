@@ -88,7 +88,7 @@ export function CronTools() {
     if (aiStreaming) return
     const description = aiPrompt.trim()
     if (!description) return
-    const aiSettings = loadAiSettings()
+    const aiSettings = await loadAiSettings()
     if (!aiSettings.model.trim()) {
       showToast('请先在「AI 设置」中配置接口和模型', 'error')
       return

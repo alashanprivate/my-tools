@@ -34,6 +34,8 @@
 
 @layer base {
   :root {
+    /* 跟随主题切换原生滚动条、表单控件等浏览器 UI 的配色 */
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -57,24 +59,26 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    color-scheme: dark;
+    /* 中性炭灰基调（低饱和，接近 GitHub Dark），主色保留蓝色 */
+    --background: 220 6% 9%;
+    --foreground: 210 15% 92%;
+    --card: 220 7% 11%;
+    --card-foreground: 210 15% 92%;
+    --popover: 220 7% 11%;
+    --popover-foreground: 210 15% 92%;
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 220 6% 17%;
+    --secondary-foreground: 210 15% 92%;
+    --muted: 220 6% 16%;
+    --muted-foreground: 215 12% 62%;
+    --accent: 220 6% 18%;
+    --accent-foreground: 210 15% 95%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 220 6% 20%;
+    --input: 220 6% 20%;
     --ring: 224.3 76.3% 48%;
   }
 }
@@ -88,10 +92,220 @@
   }
 }
 
+/*
+ * 配色方案（设置页可选）：只覆盖主题色变量（primary / ring），
+ * 表面中性色沿用上方 :root / .dark 的基础值；blue 为默认方案（无 data-theme 属性）。
+ * 深色变体用 [data-theme].dark 双选择器保证优先级，深浅色互不串扰。
+ */
+[data-theme='graphite'] {
+  --primary: 220 6% 16%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 220 6% 40%;
+}
+[data-theme='graphite'].dark {
+  --primary: 210 15% 90%;
+  --primary-foreground: 220 6% 10%;
+  --ring: 210 12% 75%;
+}
+[data-theme='green'] {
+  --primary: 142 72% 32%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 142 72% 32%;
+}
+[data-theme='green'].dark {
+  --primary: 142 66% 45%;
+  --primary-foreground: 150 40% 8%;
+  --ring: 142 66% 45%;
+}
+[data-theme='violet'] {
+  --primary: 262 84% 52%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 262 84% 52%;
+}
+[data-theme='violet'].dark {
+  --primary: 258 88% 70%;
+  --primary-foreground: 262 40% 12%;
+  --ring: 258 88% 70%;
+}
+[data-theme='pure'] {
+  --primary: 0 0% 12%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 0 0% 40%;
+}
+[data-theme='pure'].dark {
+  --primary: 0 0% 93%;
+  --primary-foreground: 0 0% 10%;
+  --ring: 0 0% 75%;
+}
+[data-theme='mist'] {
+  --primary: 210 10% 45%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 210 10% 45%;
+}
+[data-theme='mist'].dark {
+  --primary: 210 12% 78%;
+  --primary-foreground: 210 15% 12%;
+  --ring: 210 12% 78%;
+}
+[data-theme='titanium'] {
+  --primary: 30 4% 32%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 30 4% 32%;
+}
+[data-theme='titanium'].dark {
+  --primary: 40 4% 82%;
+  --primary-foreground: 30 4% 10%;
+  --ring: 40 4% 82%;
+}
+[data-theme='cobalt'] {
+  --primary: 222 88% 40%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 222 88% 40%;
+}
+[data-theme='cobalt'].dark {
+  --primary: 217 92% 64%;
+  --primary-foreground: 222 47% 12%;
+  --ring: 217 92% 64%;
+}
+[data-theme='teal'] {
+  --primary: 173 70% 30%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 173 70% 30%;
+}
+[data-theme='teal'].dark {
+  --primary: 172 66% 46%;
+  --primary-foreground: 175 60% 9%;
+  --ring: 172 66% 46%;
+}
+[data-theme='amber'] {
+  --primary: 35 92% 45%;
+  --primary-foreground: 30 30% 10%;
+  --ring: 35 92% 45%;
+}
+[data-theme='amber'].dark {
+  --primary: 43 96% 56%;
+  --primary-foreground: 30 40% 10%;
+  --ring: 43 96% 56%;
+}
+[data-theme='pink'] {
+  --primary: 348 74% 44%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 348 74% 44%;
+}
+[data-theme='pink'].dark {
+  --primary: 350 85% 68%;
+  --primary-foreground: 348 50% 12%;
+  --ring: 350 85% 68%;
+}
+[data-theme='vscode'] {
+  --primary: 199 100% 32%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 199 100% 32%;
+}
+[data-theme='vscode'].dark {
+  --primary: 206 100% 56%;
+  --primary-foreground: 210 50% 10%;
+  --ring: 206 100% 56%;
+}
+[data-theme='idea'] {
+  --primary: 220 86% 57%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 220 86% 57%;
+}
+[data-theme='idea'].dark {
+  --primary: 220 90% 68%;
+  --primary-foreground: 222 45% 12%;
+  --ring: 220 90% 68%;
+}
+[data-theme='xcode'] {
+  --primary: 211 100% 46%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 211 100% 46%;
+}
+[data-theme='xcode'].dark {
+  --primary: 211 100% 58%;
+  --primary-foreground: 210 50% 10%;
+  --ring: 211 100% 58%;
+}
+[data-theme='jetbrains'] {
+  --primary: 250 65% 52%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 250 65% 52%;
+}
+[data-theme='jetbrains'].dark {
+  --primary: 251 85% 72%;
+  --primary-foreground: 250 50% 12%;
+  --ring: 251 85% 72%;
+}
+[data-theme='cursor'] {
+  --primary: 215 30% 40%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 215 30% 40%;
+}
+[data-theme='cursor'].dark {
+  --primary: 215 35% 75%;
+  --primary-foreground: 215 30% 10%;
+  --ring: 215 35% 75%;
+}
+[data-theme='claude'] {
+  --primary: 16 55% 45%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 16 55% 45%;
+}
+[data-theme='claude'].dark {
+  --primary: 14 63% 60%;
+  --primary-foreground: 15 40% 12%;
+  --ring: 14 63% 60%;
+}
+/* 自定义配色：具体值由 JS 内联注入（亮/暗各一组变量），此处负责按模式取用；
+   fallback 保证变量尚未注入时不至于无主色 */
+[data-theme='custom'] {
+  --primary: var(--custom-primary, 221.2 83.2% 53.3%);
+  --primary-foreground: var(--custom-primary-foreground, 210 40% 98%);
+  --ring: var(--custom-ring, 221.2 83.2% 53.3%);
+}
+[data-theme='custom'].dark {
+  --primary: var(--custom-primary-dark, 217.2 91.2% 59.8%);
+  --primary-foreground: var(--custom-primary-foreground-dark, 222.2 47.4% 11.2%);
+  --ring: var(--custom-ring-dark, 224.3 76.3% 48%);
+}
+
 /* 隐藏滚动条但保留滚动能力（侧边栏等紧凑区域用） */
 @utility scrollbar-none {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/*
+ * 简约滚动条：透明轨道 + 悬浮式细圆角半透明滑块，悬停加深。
+ * 颜色取 --foreground 加透明度，深浅色主题自动适配。
+ * 注意 Chromium 121+ 一旦设置了 scrollbar-width/color 标准属性就会忽略
+ * ::-webkit-scrollbar，故标准属性只在 Firefox（@supports 分支）里启用。
+ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background-color: hsl(var(--foreground) / 0.16);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--foreground) / 0.32);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--foreground) / 0.16) transparent;
   }
 }

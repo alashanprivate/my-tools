@@ -142,24 +142,30 @@ export function buildMockDataMessages(sampleJson: string, requirement: string): 
   ]
 }
 
-/** 构造全局「问 AI」的对话消息，可携带当前工具上下文 */
-export function buildAskMessages(
-  question: string,
+/** 「问 AI」对话轮次：面板展示与消息构造共用 */
+export interface AskTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+const ASK_SYSTEM_PROMPT =
+  '你是开发者工具箱内的 AI 助手，回答简洁、准确，使用中文；如提供了工具上下文，请结合上下文回答。'
+
+/** 构造全局「问 AI」的多轮对话消息：系统提示（含可选工具上下文）+ 全部历史轮次 */
+export function buildAskConversationMessages(
+  turns: AskTurn[],
   context?: { toolName: string; content: string } | null,
 ): ChatMessage[] {
-  const trimmed = question.trim()
   const contextContent = context?.content.trim()
-  const user =
-    context && contextContent
-      ? `【当前上下文 · ${context.toolName}】\n${contextContent}\n\n【问题】\n${trimmed}`
-      : trimmed
   return [
     {
       role: 'system',
       content:
-        '你是开发者工具箱内的 AI 助手，回答简洁、准确，使用中文；如提供了工具上下文，请结合上下文回答。',
+        context && contextContent
+          ? `${ASK_SYSTEM_PROMPT}\n\n【当前上下文 · ${context.toolName}】\n${contextContent}`
+          : ASK_SYSTEM_PROMPT,
     },
-    { role: 'user', content: user },
+    ...turns.map((turn) => ({ role: turn.role, content: turn.content })),
   ]
 }
 

@@ -1,12 +1,28 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "主窗口默认能力：允许通过 shell 插件用系统浏览器打开外部链接，以及创建/聚焦 AI 对话应用内窗口",
+  "description": "主窗口默认能力：允许通过 shell 插件用系统浏览器打开外部链接，以及创建/控制 AI 对话内嵌子 webview",
   "windows": ["main"],
   "permissions": [
     "core:default",
     "shell:allow-open",
     "core:webview:allow-create-webview-window",
-    "core:window:allow-set-focus"
+    "core:webview:allow-create-webview",
+    "core:webview:allow-get-all-webviews",
+    "core:webview:allow-set-webview-position",
+    "core:webview:allow-set-webview-size",
+    "core:webview:allow-webview-show",
+    "core:webview:allow-webview-hide",
+    "core:webview:allow-set-webview-focus",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-theme",
+    "core:window:allow-minimize",
+    "core:window:allow-toggle-maximize",
+    "core:window:allow-close",
+    "core:window:allow-start-dragging",
+    "core:window:allow-is-maximized",
+    "sql:default",
+    "sql:allow-execute",
+    "store:default"
   ]
 }

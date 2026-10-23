@@ -26,7 +26,7 @@ export {
 export { createSseParser, SSE_DONE } from './sse'
 export { listModels, streamChatCompletion } from './client'
 export {
-  buildAskMessages,
+  buildAskConversationMessages,
   buildCronMessages,
   buildExceptionMessages,
   buildJavaEntityMessages,
@@ -37,6 +37,7 @@ export {
   extractCronFromResponse,
   extractRegexFromResponse,
   type CronFormat,
+  type AskTurn,
   type JavaEntityOptions,
   type SqlDialect,
   type SqlMode,

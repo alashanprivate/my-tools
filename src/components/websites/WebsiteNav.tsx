@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { SiteFavicon } from '@/components/ui/SiteFavicon'
 import { useToast } from '@/components/ui/useToast'
 import { cn } from '@/lib/utils'
 import {
@@ -26,7 +27,8 @@ import {
   saveWebsites,
   type WebsiteItem,
 } from '@/lib/websites'
-import { isTauri, openExternal } from '@/lib/websites/openExternal'
+import { isTauri } from '@/lib/environment'
+import { openExternal } from '@/lib/websites/openExternal'
 
 const AVATAR_COLORS = [
   'bg-blue-500',
@@ -69,7 +71,7 @@ function SiteTile({
   // 与下面的 shell 插件调用叠加导致一次点击开两个标签页
   const externalProps = isTauri() ? {} : { target: '_blank', rel: 'noopener noreferrer' }
   return (
-    <div className="group flex w-20 flex-col items-center">
+    <div className="group flex w-16 flex-col items-center">
       <a
         href={site.url}
         {...externalProps}
@@ -90,15 +92,13 @@ function SiteTile({
         }}
         className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
       >
-        <div
-          className={cn(
-            'flex h-16 w-16 items-center justify-center rounded-xl text-2xl font-bold text-white shadow-sm transition-all group-hover:shadow-md',
-            avatarColor(site.name),
-          )}
-        >
-          {letter}
-        </div>
-        <p className="mt-2 w-20 truncate text-center text-sm" title={site.name}>
+        <SiteFavicon
+          url={site.url}
+          letter={letter}
+          fallbackClassName={avatarColor(site.name)}
+          className="h-11 w-11 rounded-lg text-base font-bold text-white shadow-sm transition-all group-hover:shadow-md"
+        />
+        <p className="mt-1.5 w-16 truncate text-center text-sm" title={site.name}>
           {site.name}
         </p>
       </a>
@@ -358,8 +358,9 @@ function ContextMenu({ menu, onClose }: { menu: MenuState; onClose: () => void }
 }
 
 export function WebsiteNav() {
-  const [sites, setSites] = useState<WebsiteItem[]>(loadWebsites)
-  const [customCategories, setCustomCategories] = useState<string[]>(() => loadCategories(sites))
+  const [sites, setSites] = useState<WebsiteItem[]>([])
+  const [customCategories, setCustomCategories] = useState<string[]>([])
+  const [loaded, setLoaded] = useState(false)
   const [keyword, setKeyword] = useState('')
   const [category, setCategory] = useState<string>(ALL_CATEGORY)
   const [addSiteOpen, setAddSiteOpen] = useState(false)
@@ -368,13 +369,29 @@ export function WebsiteNav() {
   const [contextMenu, setContextMenu] = useState<MenuState | null>(null)
   const { showToast } = useToast()
 
+  // 挂载时异步加载（含一次性迁入 localStorage 旧数据）
   useEffect(() => {
-    saveWebsites(sites)
-  }, [sites])
+    let cancelled = false
+    void (async () => {
+      const loadedSites = await loadWebsites()
+      const loadedCategories = await loadCategories(loadedSites)
+      if (cancelled) return
+      setSites(loadedSites)
+      setCustomCategories(loadedCategories)
+      setLoaded(true)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
-    saveCategories(customCategories)
-  }, [customCategories])
+    if (loaded) void saveWebsites(sites)
+  }, [sites, loaded])
+
+  useEffect(() => {
+    if (loaded) void saveCategories(customCategories)
+  }, [customCategories, loaded])
 
   const filtered = useMemo(() => {
     const kw = keyword.trim().toLowerCase()
@@ -456,6 +473,14 @@ export function WebsiteNav() {
   const handleRestore = () => {
     setSites(getPresetWebsites())
     showToast('已恢复预设网站', 'success')
+  }
+
+  if (!loaded) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-6 py-6">
+        <div className="mt-24 text-center text-sm text-muted-foreground">加载中...</div>
+      </div>
+    )
   }
 
   return (

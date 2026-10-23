@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, beforeEach } from 'vitest'
 import {
   WEBSITE_CATEGORIES,
   addCategory,
@@ -14,6 +14,14 @@ import {
   saveWebsites,
   type WebsiteItem,
 } from './index'
+
+/** 门面的浏览器降级实现走 localStorage 命名空间；legacy 键为迁移通道入口 */
+const LEGACY_SITES_KEY = 'website-nav-sites'
+const LEGACY_CATEGORIES_KEY = 'website-nav-custom-categories'
+
+beforeEach(() => {
+  localStorage.clear()
+})
 
 describe('normalizeUrl', () => {
   it('为缺协议的网址补全 https://', () => {
@@ -66,32 +74,41 @@ describe('预设与存储', () => {
     }
   })
 
-  it('无存储记录时 loadWebsites 返回预设', () => {
-    localStorage.removeItem('website-nav-sites')
-    expect(loadWebsites()).toEqual(getPresetWebsites())
+  it('无存储记录时 loadWebsites 返回预设', async () => {
+    expect(await loadWebsites()).toEqual(getPresetWebsites())
   })
 
-  it('保存后能读回相同数据，损坏数据返回预设', () => {
+  it('保存后能读回相同数据，损坏数据返回预设', async () => {
     const items: WebsiteItem[] = [
       { id: 'a1', name: '示例', url: 'https://example.com', category: '工具' },
     ]
-    saveWebsites(items)
-    expect(loadWebsites()).toEqual(items)
+    await saveWebsites(items)
+    expect(await loadWebsites()).toEqual(items)
 
-    localStorage.setItem('website-nav-sites', '{broken json')
-    expect(loadWebsites()).toEqual(getPresetWebsites())
+    // 模拟 store 数据损坏：直接写坏命名空间键
+    localStorage.setItem('json-store:websites.json#sites', '{broken json')
+    expect(await loadWebsites()).toEqual(getPresetWebsites())
 
-    localStorage.setItem('website-nav-sites', '[{"id":"x"}]')
-    expect(loadWebsites()).toEqual([])
+    localStorage.setItem('json-store:websites.json#sites', '[{"id":"x"}]')
+    expect(await loadWebsites()).toEqual([])
 
     // 显式空数组视为用户清空，不回退预设
-    saveWebsites([])
-    expect(loadWebsites()).toEqual([])
+    await saveWebsites([])
+    expect(await loadWebsites()).toEqual([])
   })
 
-  it('保留自定义分类的存储项，只过滤缺字段或空分类的项', () => {
+  it('localStorage 旧数据自动迁入 store 并删除旧键', async () => {
+    const legacy: WebsiteItem[] = [
+      { id: 'a1', name: '示例', url: 'https://example.com', category: '工具' },
+    ]
+    localStorage.setItem(LEGACY_SITES_KEY, JSON.stringify(legacy))
+    expect(await loadWebsites()).toEqual(legacy)
+    expect(localStorage.getItem(LEGACY_SITES_KEY)).toBeNull()
+  })
+
+  it('保留自定义分类的存储项，只过滤缺字段或空分类的项', async () => {
     localStorage.setItem(
-      'website-nav-sites',
+      LEGACY_SITES_KEY,
       JSON.stringify([
         { id: 'ok', name: '内置', url: 'https://a.com', category: 'AI' },
         { id: 'custom', name: '自定义', url: 'https://b.com', category: '学术' },
@@ -99,7 +116,7 @@ describe('预设与存储', () => {
         { id: 'missing', name: '缺分类', url: 'https://d.com' },
       ]),
     )
-    expect(loadWebsites().map((item) => item.id)).toEqual(['ok', 'custom'])
+    expect((await loadWebsites()).map((item) => item.id)).toEqual(['ok', 'custom'])
   })
 })
 
@@ -150,23 +167,25 @@ describe('独立分类管理', () => {
     expect(isCategoryInUse(sites, '资讯')).toBe(false)
   })
 
-  it('loadCategories 合并已存储分类与站点中出现的历史分类并去重', () => {
-    localStorage.setItem('website-nav-custom-categories', JSON.stringify(['学习', '资讯']))
+  it('loadCategories 合并已存储分类与站点中出现的历史分类并去重', async () => {
+    localStorage.setItem(LEGACY_CATEGORIES_KEY, JSON.stringify(['学习', '资讯']))
     // 站点里的「学习」已登记，「学术」是历史遗留的自定义分类（非内置），需合并进来
-    expect(loadCategories([{ ...sites[1], category: '学术' }])).toEqual([
+    expect(await loadCategories([{ ...sites[1], category: '学术' }])).toEqual([
       '学习',
       '资讯',
       '学术',
     ])
-    // 损坏数据不抛错，仅保留站点派生部分
-    localStorage.setItem('website-nav-custom-categories', '{broken')
-    expect(loadCategories([])).toEqual([])
   })
 
-  it('saveCategories 保存后 loadCategories 可读回', () => {
-    localStorage.removeItem('website-nav-custom-categories')
-    saveCategories(['学习'])
-    expect(loadCategories([])).toEqual(['学习'])
+  it('损坏的旧数据迁入时被清除且不抛错，仅保留站点派生部分', async () => {
+    localStorage.setItem(LEGACY_CATEGORIES_KEY, '{broken')
+    expect(await loadCategories([])).toEqual([])
+    expect(localStorage.getItem(LEGACY_CATEGORIES_KEY)).toBeNull()
+  })
+
+  it('saveCategories 保存后 loadCategories 可读回', async () => {
+    await saveCategories(['学习'])
+    expect(await loadCategories([])).toEqual(['学习'])
   })
 })
 

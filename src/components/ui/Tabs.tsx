@@ -17,11 +17,21 @@ const useTabsContext = () => {
 }
 
 interface TabsProps extends HTMLAttributes<HTMLDivElement> {
-  defaultValue: string
+  /** 非受控模式的初始 tab */
+  defaultValue?: string
+  /** 受控模式的当前 tab；提供后以外部状态为准，defaultValue 失效 */
+  value?: string
+  /** tab 变化回调，受控/非受控都会触发 */
+  onValueChange?: (value: string) => void
 }
 
-const Tabs = ({ defaultValue, children, className }: TabsProps) => {
-  const [activeTab, setActiveTab] = useState(defaultValue)
+const Tabs = ({ defaultValue = '', value, onValueChange, children, className }: TabsProps) => {
+  const [internalTab, setInternalTab] = useState(defaultValue)
+  const activeTab = value ?? internalTab
+  const setActiveTab = (next: string) => {
+    if (value === undefined) setInternalTab(next)
+    onValueChange?.(next)
+  }
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
